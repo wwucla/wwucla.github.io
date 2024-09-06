@@ -17,13 +17,16 @@ TLDR:
 Optimizations that might impact model quality
 
 #### Quantization
-* Weights Quantization - only optimize for storage, weights are converted back to FP16 at computation time
-* Activation Quantization - quantize to int8, int4, and recently Nvidia hardware had support for [FP8](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html)
-    * Post-training quantization
-    * Quantization-aware training
+* Weights-only Quantization vs Activation Quantization
+  * Weights Quantization - only optimize for storage, weights are converted back to FP16 at computation time
+  * Activation Quantization - quantize to int8, int4, and recently Nvidia hardware had support for [FP8](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html)
+* Post-training quantization (PTQ) vs Quantization-aware training (QAT)
+  * PTQ
+  * QAT
 
 #### Distillation
-* Knowledge transfer to a smaller student model - the key is to have the student model learn from both ground truth labels and the softer softmax output of the teacher model (using a higher temperature)
+* Knowledge transfer to a smaller student model
+* The key is to have the student model learn from both ground truth labels and the softened softmax output of the teacher model (softmax with a higher temperature)
 
 #### Pruning & Sparsity
 * TBD
