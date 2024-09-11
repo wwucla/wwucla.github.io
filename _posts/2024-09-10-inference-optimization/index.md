@@ -40,7 +40,7 @@ A typical LLM inference server architecture[^ref-llm-arch] is illustrated in Fig
 Due to the distinct computational patterns of the prefill and decode phases, they are often optimized separately. This allows for tailored hardware and software optimizations to maximize performance.
 
 <p align="center">
-  <img src="./images/llm_inference_server_arch.png" width="900"><br />
+  <img src="llm_server_arch.png" width="900"><br />
   Figure 1: Typical Architecture of LLM Inference Servers and Engines
 </p>
 
