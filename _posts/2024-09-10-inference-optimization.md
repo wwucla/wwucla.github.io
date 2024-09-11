@@ -1,10 +1,10 @@
 # Large Transformer Model - Inference Optimization
 
-**TL;DR**: This note provides a comprehensive overview of LLM inference, including the challenges it presents and potential solutions through algorithmic optimization and system implementation improvements.
+**TL;DR**: This note provides a comprehensive overview of LLM inference, including challenges it presents and potential solutions through algorithmic optimization and system implementation improvements.
 
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
-- [Large Transformer Model Inference Overview](#large-transformer-model-inference-overview)
+- [Overview](#overview)
   * [Two-phase process](#two-phase-process)
   * [Challenges of Inferencing Large Transformer Model](#challenges-of-inferencing-large-transformer-model)
 - [Algorithmic Optimization](#algorithmic-optimization)
@@ -25,7 +25,7 @@
 <!-- TOC end -->
 
 
-## Large Transformer Model Inference Overview
+## Overview
 Most contemporary LLMs are based on the transformer architecture. These models process input text sequentially, token by token. The model generates subsequent tokens until a designated termination token, such as `<end>`, is produced, signaling the completion of the output sequence.
 
 ### Two-phase process
