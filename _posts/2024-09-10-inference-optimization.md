@@ -1,6 +1,6 @@
 # Large Transformer Model - Inference Optimization
 
-**TL;DR**: this note lays out an overview and challenges of LLM inference, and how those challenges can be overcome by optimizing the algorithm of engineering implementation.
+**TL;DR**: this note lays out an overview and challenges of LLM inference, and how those challenges can be overcome by optimizing the algorithm or the system implementation.
 
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
