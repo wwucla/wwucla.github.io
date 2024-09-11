@@ -34,14 +34,14 @@ LLM inference is generally divided into two primary phases:
 
 A typical LLM inference server architecture[^ref-llm-arch] is illustrated in Figure 1. It includes:
 * **Query Queue Scheduler**: This component manages incoming queries and optimizes batching for efficient inference.
-* **Inference Engine**: The inference engine handles dynamic batching and orchestrates the prefill and decode phases. It employs GPUs or other specialized hardware to accelerate the computationally intensive operations.
+* **Inference Engine**: The inference engine handles dynamic batching and orchestrates the prefill and decode phases. It employs GPUs or other specialized hardware to accelerate computationally intensive operations.
 
 Due to the distinct computational patterns of the prefill and decode phases, they are often optimized separately. This allows for tailored hardware and software optimizations to maximize performance.
 
-<figure>
-   <img src="images/llm_inference_server_arch.png" width="900"><br />
-   <figcaption class=">figure-caption text-center">Figure 1: Typical Architecture of LLM Inference Servers and Engines</figcaption>
-</figure>
+<p align="center">
+  <img src="images/llm_inference_server_arch.png" width="900"><br />
+  Figure 1: Typical Architecture of LLM Inference Servers and Engines
+</p>
 
 ### Challenges of Inferencing Large Transformer Model
 There are multiple challenges around LLM inference:
