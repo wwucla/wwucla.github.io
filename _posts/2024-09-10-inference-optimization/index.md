@@ -1,11 +1,7 @@
-# Inference Optimization of Large Transformer Model
+# Large Transformer Model - Inference Optimization
 
 TLDR:
 
-<!--
-<details>
-<summary>Table of Contents</summary>
--->
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
 - [Large Transformer Model Inference Overview](#large-transformer-model-inference-overview)
@@ -26,9 +22,7 @@ TLDR:
   * [References](#references)
 
 <!-- TOC end -->
-<!--
-</details>
--->
+
 
 ## Large Transformer Model Inference Overview
 * Prefilling (context processing) + Generation
