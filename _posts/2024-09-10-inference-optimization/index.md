@@ -25,9 +25,20 @@ TLDR:
 
 
 ## Large Transformer Model Inference Overview
-* Prefilling (context processing) + Generation
+The majority of the LLMs today use different variants of transformer architecture. Such models take the context (or more precisely, tokens) as input, and keep generating the next tokens until the output is a special <`end`> token, which terminates the generation. 
+
+LLM inference typically runs in two phases:
+* Prefill Phase (aka initialization phase)
+LLM processes input tokens in this phase and computes keys and values at each decoder layer (KV cache). Given all input tokens are available at once, it involves large-scale matrix-matrix operations that can be highly parallelized, especially when the input context is long.
+* Decode Phase (aka generation phase)
+LLM uses the KV cache to compute the next output token, which is later used as input to generate the next output. During each token decode/generation step, the keys and values are stored in the KV cache therefore they don't have to be recomputed. Despite the autoregressive decode process is sequential, it still involves a large amount of matrix-vector operations, which can be parallelized. 
+
+Prefill and decode phases are typically implemented separately due to distinct computation patterns and they can be optimized differently. A more complicated LLM inference server involves a query queue scheduler, an inference engine that handles dynamic batching and the actual inference work. It utilizes GPU or other custom accelerators to speed up the computation.
 
 ### Challenges of Inferencing Large Transformer Model
+There are multiple challenges around LLM inference:
+* 
+
 * Context phase: heavy computation, handling super-long context
 * Generation phase: KV cache
 
