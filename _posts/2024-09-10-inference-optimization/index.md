@@ -5,6 +5,7 @@ TLDR:
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
 - [Large Transformer Model Inference Overview](#large-transformer-model-inference-overview)
+  * [Two-phase process](#two-phase-process)
   * [Challenges of Inferencing Large Transformer Model](#challenges-of-inferencing-large-transformer-model)
 - [Algorithmic Optimization](#algorithmic-optimization)
   * [General Methodologies](#general-methodologies)
@@ -19,7 +20,7 @@ TLDR:
   * [StreamingLLM](#streamingllm)
   * [FlashAttention](#flashattention)
   * [Speculative Decoding](#speculative-decoding)
-  * [References](#references)
+- [References](#references)
 
 <!-- TOC end -->
 
