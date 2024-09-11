@@ -34,8 +34,8 @@ LLM inference is generally divided into two primary phases:
 * **Decode Phase** (aka generation phase): LLM iteratively generates output tokens, using the previously generated tokens and the KV caches to compute the next token. While the decoding process is sequential, it still involves matrix-vector operations that can be parallelized.
 
 A typical LLM inference server architecture[^ref-llm-arch] is illustrated in Figure 1. It includes:
-* **Query Queue Scheduler**: This component manages incoming queries and optimizes batching for efficient inference.
-* **Inference Engine**: The inference engine handles dynamic batching and orchestrates the prefill and decode phases. It employs GPUs or other specialized hardware to accelerate computationally intensive operations.
+* **Query Queue Scheduler**: manages incoming queries and optimizes batching for efficient inference.
+* **Inference Engine**: handles dynamic batching and orchestrates the prefill and decode phases. It employs GPUs or other specialized hardware to accelerate computationally intensive operations.
 
 Due to the distinct computational patterns of the prefill and decode phases, they are often optimized separately. This allows for tailored hardware and software optimizations to maximize performance.
 
