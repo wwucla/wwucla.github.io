@@ -25,30 +25,33 @@ TLDR:
 
 
 ## Large Transformer Model Inference Overview
-The majority of the LLMs today use different variants of transformer architecture. Such models take the context (or more precisely, tokens) as input, and keep generating the next tokens until the output is a special <`end`> token, which terminates the generation. 
+Most contemporary LLMs are based on the transformer architecture. These models process input text sequentially, token by token. The model generates subsequent tokens until a designated termination token, such as <`end`>, is produced, signaling the completion of the output sequence.
 
 ### Two-phase process
-LLM inference typically runs in two phases:
-* Prefill Phase (aka initialization phase)
-LLM processes input tokens in this phase and computes keys and values at each decoder layer (KV cache). Given all input tokens are available at once, it involves large-scale matrix-matrix operations that can be highly parallelized, especially when the input context is long.
-* Decode Phase (aka generation phase)
-LLM uses the KV cache to compute the next output token, which is later used as input to generate the next output. During each token decode/generation step, the keys and values are stored in the KV cache therefore they don't have to be recomputed. Despite the autoregressive decode process is sequential, it still involves a large amount of matrix-vector operations, which can be parallelized. 
+LLM inference is generally divided into two primary phases:
+* **Prefill Phase** (aka initialization phase): This phase involves processing the entire input sequence and constructing key-value (KV) caches for each decoder layer. Given the availability of all input tokens, this phase is amenable to efficient parallelization, particularly for long input contexts.
+* **Decode Phase** (aka generation phase):  In this phase, the LLM iteratively generates output tokens, using the previously generated tokens and the KV caches to compute the next token. While the decoding process is sequential, it still involves matrix-vector operations that can be parallelized.
 
-Prefill and decode phases are typically implemented separately due to distinct computation patterns and they can be optimized differently. A more complicated LLM inference server (Figure 1: ) involves a query queue scheduler, an inference engine that handles dynamic batching and the actual inference work. It utilizes GPU or other custom accelerators to speed up the computation.
+A typical LLM inference server architecture[^ref-llm-arch] is illustrated in Figure 1. It includes:
+* **Query Queue Scheduler**: This component manages incoming queries and optimizes batching for efficient inference.
+* **Inference Engine**: The inference engine handles dynamic batching and orchestrates the prefill and decode phases. It employs GPUs or other specialized hardware to accelerate the computationally intensive operations.
 
-<p align="center">
-    <img src="images/llm_inference_server_arch.png" width="800" class="center">
- 
-    <em>Figure 1: Typical Architecture of LLM Inference Servers and Engines</em>
-</p>
-<!-- ![server_arch](images/llm_inference_server_arch.png) -->
+Due to the distinct computational patterns of the prefill and decode phases, they are often optimized separately. This allows for tailored hardware and software optimizations to maximize performance.
+
+<figure>
+   <img src="images/llm_inference_server_arch.png" width="900"><br />
+   <figcaption class=">figure-caption text-center">Figure 1: Typical Architecture of LLM Inference Servers and Engines</figcaption>
+</figure>
 
 ### Challenges of Inferencing Large Transformer Model
 There are multiple challenges around LLM inference:
-* 
+* Heave computation in prefill phase
+* Handling super-long context (challenge for both storage and computation, which is quadratic to sequence length)
+* Storage of KV cache
+* KV Cache management for multiple queries
 
-* Context phase: heavy computation, handling super-long context
-* Generation phase: KV cache
+The sections below will discuss optimizations that mitigate these challenges.
+
 
 ## Algorithmic Optimization
 Optimizations that might impact model quality
@@ -96,4 +99,6 @@ Flash attention is an *exact optimization*, meaning the computation will be the 
 ### Speculative Decoding
 
 
-### References
+## References
+
+[^ref-llm-arch]: Ekin Karabulut, Omer Dayan. "[What it means to serve an LLM and which serving technology to choose from](https://www.run.ai/blog/serving-large-language-models)", 2024
