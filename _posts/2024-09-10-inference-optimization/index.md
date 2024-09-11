@@ -31,7 +31,7 @@ Most contemporary LLMs are based on the transformer architecture. These models p
 ### Two-phase process
 LLM inference is generally divided into two primary phases:
 * **Prefill Phase** (aka initialization phase): This phase involves processing the entire input sequence and constructing key-value (KV) caches for each decoder layer. Given the availability of all input tokens, this phase is amenable to efficient parallelization, particularly for long input contexts.
-* **Decode Phase** (aka generation phase):  In this phase, the LLM iteratively generates output tokens, using the previously generated tokens and the KV caches to compute the next token. While the decoding process is sequential, it still involves matrix-vector operations that can be parallelized.
+* **Decode Phase** (aka generation phase): LLM iteratively generates output tokens, using the previously generated tokens and the KV caches to compute the next token. While the decoding process is sequential, it still involves matrix-vector operations that can be parallelized.
 
 A typical LLM inference server architecture[^ref-llm-arch] is illustrated in Figure 1. It includes:
 * **Query Queue Scheduler**: This component manages incoming queries and optimizes batching for efficient inference.
