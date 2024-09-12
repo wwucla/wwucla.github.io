@@ -1,7 +1,7 @@
-# Large Transformer Model - Inference Optimization
-
 <a class="top-link hide" href="#top">↑</a>
 <a name="top"></a>
+
+# Large Transformer Model - Inference Optimization
 
 **TL;DR**: This note provides a comprehensive overview of LLM inference, including challenges it presents and potential solutions through algorithmic optimization and system implementation improvements.
 
