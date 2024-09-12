@@ -197,6 +197,9 @@ Similar to the idea of speculative execution in a pipeline, here it uses a small
 <!-- TOC --><a name="references"></a>
 ## References
 
+<a class="top-link hide" href="#top">↑</a>
+<a name="top"></a>
+
 [^ref-llm-arch]: Ekin Karabulut, Omer Dayan. "[What it means to serve an LLM and which serving technology to choose from](https://www.run.ai/blog/serving-large-language-models)", 2024
 [^ref-smoothquant]: Xiao, Guangxuan, et al. "[SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models](https://arxiv.org/abs/2211.10438)." International Conference on Machine Learning. PMLR, 2023.
 [^ref-awq]: Lin, Ji, et al. "[AWQ: Activation-aware Weight Quantization for On-Device LLM Compression and Acceleration](https://arxiv.org/abs/2306.00978)." Proceedings of Machine Learning and Systems 6 (2024): 87-100.
