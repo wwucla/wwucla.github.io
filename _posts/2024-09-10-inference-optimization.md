@@ -95,7 +95,7 @@ The key idea of SmoothQuant is to migrate part of the quantization challenges fr
   Figure 3: SmoothQuant Intuition [from SmoothQuant paper]
 </p>
 
-AWQ ([Lin et al, 2024](https://arxiv.org/abs/2306.00978))[^ref-awq]
+**AWQ** ([Lin et al, 2024](https://arxiv.org/abs/2306.00978))[^ref-awq]
 
 
 ### Knowledge Distillation
