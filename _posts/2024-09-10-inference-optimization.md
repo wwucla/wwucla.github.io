@@ -16,7 +16,7 @@
    * [Knowledge Distillation](#knowledge-distillation)
    * [Pruning & Sparsity](#pruning-sparsity)
    * [Transformer Model Architecture Optimization](#transformer-model-architecture-optimization)
-      + [MQA and GQA](#mqa-and-gqa)
+      + [Multi-Query Attention (MQA) and Grouped-Query Attention (GQA)](#multi-query-attention-mqa-and-grouped-query-attention-gqa)
       + [Mixture of Expert (MOE)](#mixture-of-expert-moe)
 - [Implementation / System Optimization](#implementation-system-optimization)
    * [vLLM (PagedAttention)](#vllm-pagedattention)
@@ -36,6 +36,11 @@ LLM inference is generally divided into two primary phases:
 * **Prefill Phase** (aka initialization phase): This phase involves processing the entire input sequence and constructing key-value (KV) caches for each decoder layer. Given the availability of all input tokens, this phase is amenable to efficient parallelization, particularly for long input contexts.
 * **Decode Phase** (aka generation phase): LLM iteratively generates output tokens, using the previously generated tokens and the KV caches to compute the next token. While the decoding process is sequential, it still involves matrix-vector operations that can be parallelized.
 
+<p align="center">
+  <img src="/images/inference-optimization/two_phases.webp" width="600"><br />
+  Figure 1: Prefill and Decode phases for LLM inference [source: https://www.adyen.com/knowledge-hub/llm-inference-at-scale-with-tgi]
+</p>
+
 A typical LLM inference server architecture[^ref-llm-arch] is illustrated in Figure 1. It includes:
 * **Query Queue Scheduler**: manages incoming queries and optimizes batching for efficient inference.
 * **Inference Engine**: handles dynamic batching and orchestrates the prefill and decode phases. It employs GPUs or other specialized hardware to accelerate computationally intensive operations.
@@ -44,7 +49,7 @@ Due to the distinct computational patterns of the prefill and decode phases, the
 
 <p align="center">
   <img src="/images/inference-optimization/llm_server_arch.png" width="900"><br />
-  Figure 1: Typical Architecture of LLM Inference Servers and Engines
+  Figure 2: Typical Architecture of LLM Inference Servers and Engines
 </p>
 
 ### Challenges of Inferencing Large Transformer Model
@@ -102,7 +107,14 @@ The key idea of SmoothQuant is to migrate part of the quantization challenges fr
 
 
 ### Knowledge Distillation
-The high-level idea of knowledge distillation ([Hinton et al, 2015](https://arxiv.org/abs/1503.02531)) is to transfer knowledge from a cumbersome teacher model to a smaller student mode. The key idea is well articulated in the following paragraph quoted from the orignal paper:
+The high-level idea of knowledge distillation ([Hinton et al, 2015](https://arxiv.org/abs/1503.02531)) is to transfer knowledge from a cumbersome teacher model to a smaller student mode. Illustrated in the figure below.
+
+<p align="center">
+  <img src="/images/inference-optimization/kd_framework.png" width="600"><br />
+  Figure 3: Knowledge Distillation Framework [source: https://arxiv.org/abs/2006.05525]
+</p>
+
+The key idea of knowledge distillation is well articulated in the following paragraph quoted from the orignal paper:
 
 * *"We found that a better way is to simply use a **weighted average of two different objective functions**. The first objective function is the cross entropy with the soft targets and this cross entropy is computed using the same high temperature in the softmax of the distilled model as was used for generating the soft targets from the cumbersome model. The second objective function is the cross entropy with the correct labels. This is computed using exactly the same logits in softmax of the distilled model but at a temperature of 1. We found that the best results were generally obtained by using a **condiderably lower weight on the second objective function**"*
 
