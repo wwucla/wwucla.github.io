@@ -81,8 +81,21 @@ Then, we'll delve into optimizations tailored to transformer models, discussing 
 * **Quantization-aware training (QAT)** introduced by [Jacob et al. 2017](https://arxiv.org/abs/1712.05877)[^ref-qat], allows for training models with lower-precision weights and activations during the forward pass. This reduces memory usage and improves inference speed. However, the backward pass, which calculates gradients for weight updates, still uses full precision to maintain accuracy. While QAT typically leads to higher quality quantized models compared to post-training quantization (PTQ), it requires a more complex setup. Fortunately, mainstream ML platforms like TensorFlow offer support for both QAT and PTQ (e.g. [QAT support in Tensorflow](https://www.tensorflow.org/model_optimization/guide/quantization/training)).
  
 #### SOTA Developments
-* SmoothQuant ([Xiao et al. 2023](https://arxiv.org/abs/2211.10438))[^ref-smoothquant]
-* AWQ ([Lin et al, 2024](https://arxiv.org/abs/2306.00978))[^ref-awq]
+**SmoothQuant[^ref-smoothquant]** ([Xiao et al. 2023](https://arxiv.org/abs/2211.10438)) discovered that outliers in activations become more prevalent as the model size grows. These outliers can significantly degrade quantization performance (illustrated in the figure below), leading to higher quantization errors and potentially impacting the quality of the quantized model.  In contrast, the weights have fewer outliers and are generally easier to quantize.
+
+<p align="center">
+  <img src="/images/inference-optimization/smoothquant-error-outlier.png"><br />
+  Figure 2: Model size vs Accuracy of quantized model [from SmoothQuant paper]
+</p>
+
+The key idea of SmoothQuant is to migrate part of the quantization challenges from activation to weights, which smooths out the systematic outliers in activation, making both weights and activations easy to quantize.
+
+<p align="center">
+  <img src="/images/inference-optimization/smoothquant_intuition.png" width="800"><br />
+  Figure 3: SmoothQuant Intuition [from SmoothQuant paper]
+</p>
+
+AWQ ([Lin et al, 2024](https://arxiv.org/abs/2306.00978))[^ref-awq]
 
 
 ### Knowledge Distillation
@@ -93,7 +106,7 @@ The high-level idea of knowledge distillation ([Hinton et al, 2015](https://arxi
 It uses a higher temperature to soften the learning objective (the relationship between temperature and actual labels is illustrated in the figure below).
 <p align="center">
   <img src="/images/inference-optimization/softmax.gif"><br />
-  Figure 2: Visualizing the Effects of Temperature Scaling [source](https://medium.com/@harshit158/softmax-temperature-5492e4007f71)
+  Figure 4: Visualizing the Effects of Temperature Scaling [source](https://medium.com/@harshit158/softmax-temperature-5492e4007f71)
 </p>
 
 Denoting the logits before the final softmax layer as **$z_t$** and **$z_s$** for teacher and student models, label as **$y$**, temperature as **$T$**, the learning objective described in the original paper can be represented as:
