@@ -30,7 +30,7 @@
 
 <!-- TOC --><a name="overview"></a>
 ## Overview
-Most contemporary LLMs are based on the transformer architecture. These models process input text sequentially, token by token. The model generates subsequent tokens until a designated termination token, such as `<end>`, is produced, signaling the completion of the output sequence.
+Most contemporary LLMs are based on the transformer architecture. These models process input text sequentially, token by token. The model generates subsequent tokens until a designated termination token, such as `<EOS>`, is produced, signaling the completion of the output sequence.
 
 <!-- TOC --><a name="two-phase-process"></a>
 ### Two-phase process
