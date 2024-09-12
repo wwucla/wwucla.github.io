@@ -8,15 +8,18 @@
   * [Two-phase process](#two-phase-process)
   * [Challenges of Inferencing Large Transformer Model](#challenges-of-inferencing-large-transformer-model)
 - [Algorithmic Optimization](#algorithmic-optimization)
-  * [General Methodologies](#general-methodologies)
-    + [Quantization](#quantization)
-    + [Distillation](#distillation)
-    + [Pruning & Sparsity](#pruning--sparsity)
-  * [Model Architecture Improvements with Sparsity Considerations](#model-architecture-improvements-with-sparsity-considerations)
+  * [Quantization](#quantization)
+    + [Weights-only Quantization vs Activation Quantization](#weights-only-quantization-vs-activation-quantization)
+    + [Post-training quantization (PTQ) vs Quantization-aware training (QAT)](#post-training-quantization-ptq-vs-quantization-aware-training-qat)
+    + [SOTA Developments](#sota-developments)
+  * [Knowledge Distillation](#knowledge-distillation)
+  * [Pruning & Sparsity](#pruning--sparsity)
+  * [Transformer Model Architecture Optimization](#transformer-model-architecture-optimization)
     + [MQA and GQA](#mqa-and-gqa)
     + [Mixture of Expert (MOE)](#mixture-of-expert-moe)
 - [Implementation / System Optimization](#implementation--system-optimization)
   * [PageAttention](#pageattention)
+  * [vLLM](#vllm)
   * [StreamingLLM](#streamingllm)
   * [FlashAttention](#flashattention)
   * [Speculative Decoding](#speculative-decoding)
@@ -46,35 +49,58 @@ Due to the distinct computational patterns of the prefill and decode phases, the
 
 ### Challenges of Inferencing Large Transformer Model
 There are multiple challenges around LLM inference:
-* Heave computation in prefill phase
-* Handling super-long context (challenge for both storage and computation, which is quadratic to sequence length)
-* Storage of KV cache
-* KV Cache management for multiple queries
+* **Heave computation** in both prefill and decode phase
+* **Storage challenge of KV cache**: storage requirement `batch_size * n_layers * (d_model/n_heads) * n_kv_heads * 2 (K and V) * 2 (sizeof FP16) * seq_len`, propotional to `seq_len`.
+* **Handling super-long context**: The capability to handle extensive sequences is essential for applications such as summarizing lengthy documents and RAG. However, this requirement often strains both storage capacity and computational resources.
+* **Efficient KV cache management when serving multiple queries**
 
-The sections below will discuss optimizations that mitigate these challenges.
+The following sections below will discuss different optimizations for LLM inference.
 
 
 ## Algorithmic Optimization
-Optimizations that might impact model quality
+This section explores optimizations that modify the LLM algorithm to enhance inference efficiency. We'll begin with general approaches applicable to many ML architectures and how they are applied to transformer models, including:
 
-### General Methodologies
+* Quantization: Reducing model size and precision by using lower-bit weights and/or activations.
+* Distillation: Training a smaller "student" model to mimic the behavior of a larger "teacher" model.
+* Pruning: Introducing sparsity by removing unnecessary connections or parameters.
 
-#### Quantization
-* Weights-only Quantization vs Activation Quantization
-  * Weights Quantization - only optimize for storage, weights are converted back to FP16 at computation time
-  * Activation Quantization - quantize to int8, int4, and recently Nvidia hardware had support for [FP8](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html)
-* Post-training quantization (PTQ) vs Quantization-aware training (QAT)
-  * PTQ
-  * QAT
+Then, we'll delve into optimizations tailored to transformer models, discussing several variants designed for more efficient inference.
 
-#### Distillation
-* Knowledge transfer to a smaller student model
-* The key is to have the student model learn from both ground truth labels and the softened softmax output of the teacher model (softmax with a higher temperature)
+### Quantization
+#### Weights-only Quantization vs Activation Quantization
+* **Weights-only Quantization (WOQ)** 
+  * WOQ focuses on quantizing the model weights. It reduces the model size, leading to faster loading time and lower memory usage during inference. Typically used precision formats are INT8 or INT4 for weights, while activations remain in FP16 for better accuracy. Recently Nvidia hardware added support for [FP8](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html), providing another alternative for quantization.
+  * WOQ can be a good trade-off between model size and accuracy, especially for large language models (LLMs) where memory bandwidth is a major bottleneck.
+* **Activation Quantization (AQ)**
+  * AQ quantizes both the weights and activations of the model. It can potentially achieve higher compression ratios compared to WOQ. However, it's more prone to accuracy degradation due to the presence of **outliers in activations**[^ref-smoothquant], which can be amplified during quantization.
+  * Requires careful selection of quantization techniques to minimize accuracy loss. (to be covered later in this section)
 
-#### Pruning & Sparsity
-* TBD
+ In summary, **WOQ** is generally preferred for LLMs due to its better balance of accuracy and efficiency. **AQ** can be beneficial for certain tasks if implemented carefully, but requires more fine-tuning to avoid accuracy drops.
 
-### Model Architecture Improvements with Sparsity Considerations
+#### Post-training quantization (PTQ) vs Quantization-aware training (QAT)
+* **Post-training quantization (PTQ)** is a straightforward and cost-effective method that directly converts the weights of a pre-trained model to lower precision without requiring any additional training. It reduces the model's size and improves inference speed.
+* **Quantization-aware training (QAT)** introduced by [Jacob et al. 2017](https://arxiv.org/abs/1712.05877)[^ref-qat], allows for training models with lower-precision weights and activations during the forward pass. This reduces memory usage and improves inference speed. However, the backward pass, which calculates gradients for weight updates, still uses full precision to maintain accuracy. While QAT typically leads to higher quality quantized models compared to post-training quantization (PTQ), it requires a more complex setup. Fortunately, mainstream ML platforms like TensorFlow offer support for both QAT and PTQ (e.g. [QAT support in Tensorflow](https://www.tensorflow.org/model_optimization/guide/quantization/training)).
+ 
+#### SOTA Developments
+* SmoothQuant ([Xiao et al. 2023](https://arxiv.org/abs/2211.10438))[^ref-smoothquant]
+* AWQ ([Lin et al, 2024](https://arxiv.org/abs/2306.00978))[^ref-awq]
+
+
+### Knowledge Distillation
+The high-level idea of knowledge distillation ([Hinton et al, 2015](https://arxiv.org/abs/1503.02531)) is to transfer knowledge from a cumbersome teacher model to a smaller student mode. The key idea is well articulated in the following paragraph quoted from the orignal paper:
+
+* *"We found that a better way is to simply use a **weighted average of two different objective functions**. The first objective function is the cross entropy with the soft targets and this cross entropy is computed using the same high temperature in the softmax of the distilled model as was used for generating the soft targets from the cumbersome model. The second objective function is the cross entropy with the correct labels. This is computed using exactly the same logits in softmax of the distilled model but at a temperature of 1. We found that the best results were generally obtained by using a **condiderably lower weight on the second objective function**"*
+
+Denoting the logits before the final softmax layer as **$z_t$** and **$z_s$** for teacher and student models, label as **$y$**, temperature as **$T$**, the learning objective described in the original paper can be represented as:
+
+$L_\text{Distillation} = L_\text{CE}(\text{Softmax}(z_t, T), \text{Softmax}(z_s, T)) + \lambda L_\text{CE}(\text{Softmax}(z_s, T), y)$
+
+
+
+### Pruning & Sparsity
+* TODO - add more details
+
+### Transformer Model Architecture Optimization
 
 #### MQA and GQA
 To reduce the KV cache size, the idea is to share the same key and value among all or a group of heads.
@@ -88,6 +114,9 @@ To reduce the KV cache size, the idea is to share the same key and value among a
 ## Implementation / System Optimization
 ### PageAttention
 Use a page table to make use of fragmented memory.
+
+### vLLM
+
 
 ### StreamingLLM
 To support super-long context, an artificial **attention sink** was used to preserve model quality.
@@ -103,3 +132,7 @@ Flash attention is an *exact optimization*, meaning the computation will be the 
 ## References
 
 [^ref-llm-arch]: Ekin Karabulut, Omer Dayan. "[What it means to serve an LLM and which serving technology to choose from](https://www.run.ai/blog/serving-large-language-models)", 2024
+[^ref-smoothquant]: Xiao, Guangxuan, et al. "[SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models](https://arxiv.org/abs/2211.10438)." International Conference on Machine Learning. PMLR, 2023.
+[^ref-awq]: Lin, Ji, et al. "[AWQ: Activation-aware Weight Quantization for On-Device LLM Compression and Acceleration](https://arxiv.org/abs/2306.00978)." Proceedings of Machine Learning and Systems 6 (2024): 87-100.
+[^ref-qat]: Jacob, Benoit, et al. "[Quantization and training of neural networks for efficient integer-arithmetic-only inference](https://arxiv.org/abs/1712.05877)." Proceedings of the IEEE conference on computer vision and pattern recognition. 2018.
+
