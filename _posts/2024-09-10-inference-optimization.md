@@ -149,9 +149,9 @@ TODO - add more details
 
 <!-- TOC --><a name="multi-query-attention-mqa-and-grouped-query-attention-gqa"></a>
 #### Multi-Query Attention (MQA) and Grouped-Query Attention (GQA)
-To reduce the KV cache size, the idea is to share the same key and value among all or a group of heads.
-* In the scenario of all heads sharing the same key and values, but only using different queries, it's called multi-query attention (MQA) [^ref-mqa].
-* research has discovered that MQA is too aggressive and the model performs degrades. Grouped-Query Attention (GQA) [^ref-gqa] was proposed to have a group of queries (instead of all) sharing the same key and value, which is a tradeoff between KV cache size optimization and model quality. 
+As mentioned previously, the size of KV cache is propotional to `d_model`, i.e. `n_heads * d_model/n_heads`. One optimization proposed in ([Shazeer et al 2019](https://arxiv.org/abs/1911.02150))[^ref-mqa] to reduce the KV cache size is to let all heads share the same key and value, but still using different queries. 
+
+Research has discovered that MQA is too aggressive and the model performs degrades, especially when the model size increases. Grouped-Query Attention (GQA) [^ref-gqa] was proposed to have a group of queries (instead of all) sharing the same key and value, which is a tradeoff between KV cache size optimization and model quality. 
   * Llama-3[^ref-llama3] ([Dubey et al 2024](https://arxiv.org/abs/2407.21783)) uses GQA.
 
 <!-- TOC --><a name="mixture-of-expert-moe"></a>
@@ -205,4 +205,4 @@ Similar to the idea of speculative execution in a pipeline, here it uses a small
 [^ref-spec-decoding]: Leviathan, Yaniv, Matan Kalman, and Yossi Matias. "[Fast inference from transformers via speculative decoding](https://arxiv.org/abs/2211.17192)." International Conference on Machine Learning. PMLR, 2023.
 [^ref-llama3]: Dubey, Abhimanyu, et al. "[The llama 3 herd of models](https://arxiv.org/abs/2407.21783)." arXiv preprint arXiv:2407.21783 (2024).
 [^ref-mqa]: Shazeer, Noam. "[Fast transformer decoding: One write-head is all you need](https://arxiv.org/abs/1911.02150)." arXiv preprint arXiv:1911.02150 (2019).
-[^ref-gqa]: Ainslie, Joshua, et al. "[Gqa: Training generalized multi-query transformer models from multi-head checkpoints](https://arxiv.org/abs/2305.13245)." arXiv preprint arXiv:2305.13245 (2023).
+[^ref-gqa]: Ainslie, Joshua, et al. "[GQA: Training generalized multi-query transformer models from multi-head checkpoints](https://arxiv.org/abs/2305.13245)." arXiv preprint arXiv:2305.13245 (2023).
