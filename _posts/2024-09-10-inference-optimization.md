@@ -151,7 +151,12 @@ TODO - add more details
 #### Multi-Query Attention (MQA) and Grouped-Query Attention (GQA)
 As mentioned previously, the size of KV cache is propotional to `d_model`, i.e. `n_heads * d_model/n_heads`. One optimization proposed in ([Shazeer et al 2019](https://arxiv.org/abs/1911.02150))[^ref-mqa] to reduce the KV cache size is to let all heads share the same key and value, but still using different queries. 
 
-Research has discovered that MQA is too aggressive and the model performs degrades, especially when the model size increases. Grouped-Query Attention (GQA) [^ref-gqa] was proposed to have a group of queries (instead of all) sharing the same key and value, which is a tradeoff between KV cache size optimization and model quality. 
+<p align="center">
+  <img src="/images/inference-optimization/mqa_gqa.png" width="600"><br />
+  Figure: Multi-Head, Group-Query, and Multi-Query Attentions 
+</p>
+
+[Ainslie et al 2023](https://arxiv.org/abs/2305.13245) [^ref-gqa] has discovered that MQA is too aggressive and the model performs degrades, especially when the model size increases. Grouped-Query Attention (GQA) [^ref-gqa] was proposed to have a group of queries (instead of all) sharing the same key and value, which is a tradeoff between KV cache size optimization and model quality. 
   * Llama-3[^ref-llama3] ([Dubey et al 2024](https://arxiv.org/abs/2407.21783)) uses GQA.
 
 <!-- TOC --><a name="mixture-of-expert-moe"></a>
