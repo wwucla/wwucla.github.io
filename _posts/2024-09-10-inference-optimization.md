@@ -116,7 +116,7 @@ $$L_\text{Distillation} = L_\text{CE}(\text{Softmax}(z_t, T), \text{Softmax}(z_s
 
 
 ### Pruning & Sparsity
-* TODO - add more details
+TODO - add more details
 
 ### Transformer Model Architecture Optimization
 
