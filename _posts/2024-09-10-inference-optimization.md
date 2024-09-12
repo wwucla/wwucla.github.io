@@ -84,7 +84,7 @@ Then, we'll delve into optimizations tailored to transformer models, discussing 
 **SmoothQuant[^ref-smoothquant]** ([Xiao et al. 2023](https://arxiv.org/abs/2211.10438)) discovered that outliers in activations become more prevalent as the model size grows. These outliers can significantly degrade quantization performance (illustrated in the figure below), leading to higher quantization errors and potentially impacting the quality of the quantized model.  In contrast, the weights have fewer outliers and are generally easier to quantize.
 
 <p align="center">
-  <img src="/images/inference-optimization/smoothquant-error-outlier.png"><br />
+  <img src="/images/inference-optimization/smoothquant-error-outlier.png" width="400"><br />
   Figure 2: Model size vs Accuracy of quantized model [from SmoothQuant paper]
 </p>
 
