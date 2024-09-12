@@ -43,7 +43,7 @@ LLM inference is generally divided into two primary phases:
   Figure 1: Prefill and Decode phases for LLM inference [source: https://www.adyen.com/knowledge-hub/llm-inference-at-scale-with-tgi]
 </p>
 
-A typical LLM inference server architecture[^ref-llm-arch] is illustrated in Figure 1. It includes:
+A typical LLM inference server architecture[^ref-llm-arch] is illustrated in the figure below. It includes:
 * **Query Queue Scheduler**: manages incoming queries and optimizes batching for efficient inference.
 * **Inference Engine**: handles dynamic batching and orchestrates the prefill and decode phases. It employs GPUs or other specialized hardware to accelerate computationally intensive operations.
 
