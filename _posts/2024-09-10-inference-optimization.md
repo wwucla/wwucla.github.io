@@ -105,8 +105,8 @@ The high-level idea of knowledge distillation ([Hinton et al, 2015](https://arxi
 
 It uses a higher temperature to soften the learning objective (the relationship between temperature and actual labels is illustrated in the figure below).
 <p align="center">
-  <img src="/images/inference-optimization/softmax.gif"><br />
-  Figure 4: Visualizing the Effects of Temperature Scaling [source](https://medium.com/@harshit158/softmax-temperature-5492e4007f71)
+  <img src="/images/inference-optimization/softmax.gif" width="300"><br />
+  Figure 4: Visualizing the Effects of Temperature Scaling [source: https://medium.com/@harshit158/softmax-temperature-5492e4007f71]
 </p>
 
 Denoting the logits before the final softmax layer as **$z_t$** and **$z_s$** for teacher and student models, label as **$y$**, temperature as **$T$**, the learning objective described in the original paper can be represented as:
