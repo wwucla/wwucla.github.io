@@ -18,8 +18,7 @@
     + [MQA and GQA](#mqa-and-gqa)
     + [Mixture of Expert (MOE)](#mixture-of-expert-moe)
 - [Implementation / System Optimization](#implementation--system-optimization)
-  * [PageAttention](#pageattention)
-  * [vLLM](#vllm)
+  * [vLLM (PagedAttention)](#vllm-pagedattention)
   * [StreamingLLM](#streamingllm)
   * [FlashAttention](#flashattention)
   * [Speculative Decoding](#speculative-decoding)
@@ -91,9 +90,15 @@ The high-level idea of knowledge distillation ([Hinton et al, 2015](https://arxi
 
 * *"We found that a better way is to simply use a **weighted average of two different objective functions**. The first objective function is the cross entropy with the soft targets and this cross entropy is computed using the same high temperature in the softmax of the distilled model as was used for generating the soft targets from the cumbersome model. The second objective function is the cross entropy with the correct labels. This is computed using exactly the same logits in softmax of the distilled model but at a temperature of 1. We found that the best results were generally obtained by using a **condiderably lower weight on the second objective function**"*
 
+It uses a higher temperature to soften the learning objective (the relationship between temperature and actual labels is illustrated in the figure below).
+<p align="center">
+  <img src="/images/inference-optimization/softmax.gif"><br />
+  Figure 2: Visualizing the Effects of Temperature Scaling [source](https://medium.com/@harshit158/softmax-temperature-5492e4007f71)
+</p>
+
 Denoting the logits before the final softmax layer as **$z_t$** and **$z_s$** for teacher and student models, label as **$y$**, temperature as **$T$**, the learning objective described in the original paper can be represented as:
 
-$L_\text{Distillation} = L_\text{CE}(\text{Softmax}(z_t, T), \text{Softmax}(z_s, T)) + \lambda L_\text{CE}(\text{Softmax}(z_s, T), y)$
+$$L_\text{Distillation} = L_\text{CE}(\text{Softmax}(z_t, T), \text{Softmax}(z_s, T)) + \lambda L_\text{CE}(\text{Softmax}(z_s, T), y)$$
 
 
 
@@ -112,22 +117,31 @@ To reduce the KV cache size, the idea is to share the same key and value among a
 
 
 ## Implementation / System Optimization
-### PageAttention
-Use a page table to make use of fragmented memory.
+### vLLM (PagedAttention)
+[Kwon et al 2023](https://arxiv.org/abs/2309.06180) [^ref-vllm]
 
-### vLLM
+Use a page table to make use of fragmented memory.
 
 
 ### StreamingLLM
+[Xiao et al 2023](https://arxiv.org/abs/2309.17453) [^ref-streamingllm]
+
 To support super-long context, an artificial **attention sink** was used to preserve model quality.
 
 ### FlashAttention
+* FlashAttention [Dao et al 2022](https://arxiv.org/abs/2205.14135) [^ref-flashattention]
+* FlashAttention2 [Dao et al 2022](https://arxiv.org/abs/2307.08691)
+* FlashAttention3 [Shah et al 2024](https://arxiv.org/abs/2407.08608)
+
 It was discovered that the majority of time consumed during the context phase is I/O. FlashAttention uses the idea of tiling and only loads part of the caches when computing attention scores to ensure more computations are conducted in high-speed SRAM and achieve a 4x speedup without impacting model accuracy.
 
 Flash attention is an *exact optimization*, meaning the computation will be the same as the conventional attention. It only optimizes data access patterns (through tiling) to reduce the I/O overhead.
 
 ### Speculative Decoding
 
+[Leviathan et al 2022](https://arxiv.org/abs/2211.17192) [^ref-spec-decoding]
+
+Similar to the idea of speculative execution in a pipeline, here it uses a smaller LLM model to predict the next few tokens, and apply the larger model to validate the quality of the predictions. Because larger models process a group of tokens instead of one by one, there is more potential to optimize for runtime.
 
 ## References
 
@@ -135,4 +149,9 @@ Flash attention is an *exact optimization*, meaning the computation will be the 
 [^ref-smoothquant]: Xiao, Guangxuan, et al. "[SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models](https://arxiv.org/abs/2211.10438)." International Conference on Machine Learning. PMLR, 2023.
 [^ref-awq]: Lin, Ji, et al. "[AWQ: Activation-aware Weight Quantization for On-Device LLM Compression and Acceleration](https://arxiv.org/abs/2306.00978)." Proceedings of Machine Learning and Systems 6 (2024): 87-100.
 [^ref-qat]: Jacob, Benoit, et al. "[Quantization and training of neural networks for efficient integer-arithmetic-only inference](https://arxiv.org/abs/1712.05877)." Proceedings of the IEEE conference on computer vision and pattern recognition. 2018.
-
+[^ref-vllm]: Kwon, Woosuk, et al. "[Efficient memory management for large language model serving with paged attention](https://arxiv.org/abs/2309.06180)." Proceedings of the 29th Symposium on Operating Systems Principles. 2023.
+[^ref-streamingllm]: Xiao, Guangxuan, et al. "[Efficient streaming language models with attention sinks](https://arxiv.org/abs/2309.17453)." arXiv preprint arXiv:2309.17453 (2023).
+[^ref-flashattention]: Dao, Tri, et al. "[Flashattention: Fast and memory-efficient exact attention with io-awareness](https://arxiv.org/abs/2205.14135)." Advances in Neural Information Processing Systems 35 (2022): 16344-16359.
+[^ref-flashattention2]: Dao, Tri. "[Flashattention-2: Faster attention with better parallelism and work partitioning](https://arxiv.org/abs/2307.08691)." arXiv preprint arXiv:2307.08691 (2023).
+[^ref-flashattention3]: Shah, Jay, et al. "[Flashattention-3: Fast and accurate attention with asynchrony and low-precision](https://arxiv.org/abs/2407.08608)." arXiv preprint arXiv:2407.08608 (2024).
+[^ref-spec-decoding]: Leviathan, Yaniv, Matan Kalman, and Yossi Matias. "[Fast inference from transformers via speculative decoding](https://arxiv.org/abs/2211.17192)." International Conference on Machine Learning. PMLR, 2023.
