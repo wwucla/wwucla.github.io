@@ -8,19 +8,19 @@
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
 - [Overview](#overview)
-   * [Two-phase process](#two-phase-process)
-   * [Challenges of Inferencing Large Transformer Model](#challenges-of-inferencing-large-transformer-model)
+   * [Two-phase Process](#two-phase-process)
+   * [Challenges](#challenges)
 - [Algorithmic Optimization](#algorithmic-optimization)
    * [Quantization](#quantization)
-      + [Weights-only Quantization vs Activation Quantization](#weights-only-quantization-vs-activation-quantization)
-      + [Post-training quantization (PTQ) vs Quantization-aware training (QAT)](#post-training-quantization-ptq-vs-quantization-aware-training-qat)
-      + [SOTA Developments - SmoothQuant](#sota-developments-smoothquant)
-      + [SOTA Developments - AWQ](#sota-developments-awq)
+      + [Weights-only vs Activation Quantization](#weights-only-vs-activation-quantization)
+      + [Post-Training Quantization vs Quantization-Aware Training](#post-training-quantization-vs-quantization-aware-training)
+      + [SmoothQuant](#smoothquant)
+      + [Activation-aware Weight Quantization (AWQ)](#activation-aware-weight-quantization-awq)
    * [Knowledge Distillation](#knowledge-distillation)
    * [Pruning & Sparsity](#pruning-sparsity)
    * [Transformer Model Architecture Optimization](#transformer-model-architecture-optimization)
-      + [Multi-Query Attention (MQA) and Grouped-Query Attention (GQA)](#multi-query-attention-mqa-and-grouped-query-attention-gqa)
-      + [Mixture of Expert (MOE)](#mixture-of-expert-moe)
+      + [Multi-Query and Grouped-Query Attention](#multi-query-and-grouped-query-attention)
+      + [Mixture of Expert](#mixture-of-expert)
 - [Implementation / System Optimization](#implementation-system-optimization)
    * [vLLM (PagedAttention)](#vllm-pagedattention)
    * [StreamingLLM](#streamingllm)
@@ -36,7 +36,7 @@
 Most contemporary LLMs are based on the transformer architecture. These models process input text sequentially, token by token. The model generates subsequent tokens until a designated termination token, such as `<EOS>`, is produced, signaling the completion of the output sequence.
 
 <!-- TOC --><a name="two-phase-process"></a>
-### Two-phase process
+### Two-phase Process
 LLM inference is generally divided into two primary phases:
 * **Prefill Phase** (aka initialization phase): This phase involves processing the entire input sequence and constructing key-value (KV) caches for each decoder layer. Given the availability of all input tokens, this phase is amenable to efficient parallelization, particularly for long input contexts.
 * **Decode Phase** (aka generation phase): LLM iteratively generates output tokens, using the previously generated tokens and the KV caches to compute the next token. While the decoding process is sequential, it still involves matrix-vector operations that can be parallelized.
@@ -57,8 +57,8 @@ Due to the distinct computational patterns of the prefill and decode phases, the
   Figure 2: Typical Architecture of LLM Inference Servers and Engines
 </p>
 
-<!-- TOC --><a name="challenges-of-inferencing-large-transformer-model"></a>
-### Challenges of Inferencing Large Transformer Model
+<!-- TOC --><a name="challenges"></a>
+### Challenges
 There are multiple challenges around LLM inference:
 * **Heave computation** in both prefill and decode phase
 * **Storage challenge of KV cache**: storage requirement `batch_size * n_layers * (d_model/n_heads) * n_kv_heads * 2 (K and V) * 2 (sizeof FP16) * seq_len`, propotional to `seq_len`.
@@ -80,8 +80,8 @@ Then, we'll delve into optimizations tailored to transformer models, discussing 
 
 <!-- TOC --><a name="quantization"></a>
 ### Quantization
-<!-- TOC --><a name="weights-only-quantization-vs-activation-quantization"></a>
-#### Weights-only Quantization vs Activation Quantization
+<!-- TOC --><a name="weights-only-vs-activation-quantization"></a>
+#### Weights-only vs Activation Quantization
 * **Weights-only Quantization (WOQ)** 
   * WOQ focuses on quantizing the model weights. It reduces the model size, leading to faster loading time and lower memory usage during inference. Typically used precision formats are INT8 or INT4 for weights, while activations remain in FP16 for better accuracy. Recently Nvidia hardware added support for [FP8](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html), providing another alternative for quantization.
   * WOQ can be a good trade-off between model size and accuracy, especially for large language models (LLMs) where memory bandwidth is a major bottleneck.
@@ -91,14 +91,14 @@ Then, we'll delve into optimizations tailored to transformer models, discussing 
 
  In summary, **WOQ** is generally preferred for LLMs due to its better balance of accuracy and efficiency. **AQ** can be beneficial for certain tasks if implemented carefully, but requires more fine-tuning to avoid accuracy drops.
 
-<!-- TOC --><a name="post-training-quantization-ptq-vs-quantization-aware-training-qat"></a>
-#### Post-training quantization (PTQ) vs Quantization-aware training (QAT)
-* **Post-training quantization (PTQ)** is a straightforward and cost-effective method that directly converts the weights of a pre-trained model to lower precision without requiring any additional training. It reduces the model's size and improves inference speed.
-* **Quantization-aware training (QAT)** introduced by [Jacob et al. 2017](https://arxiv.org/abs/1712.05877)[^ref-qat], allows for training models with lower-precision weights and activations during the forward pass. This reduces memory usage and improves inference speed. However, the backward pass, which calculates gradients for weight updates, still uses full precision to maintain accuracy. While QAT typically leads to higher quality quantized models compared to post-training quantization (PTQ), it requires a more complex setup. Fortunately, mainstream ML platforms like TensorFlow offer support for both QAT and PTQ (e.g. [QAT support in Tensorflow](https://www.tensorflow.org/model_optimization/guide/quantization/training)).
+<!-- TOC --><a name="post-training-quantization-vs-quantization-aware-training"></a>
+#### Post-Training Quantization vs Quantization-Aware Training
+* **Post-Training Quantization (PTQ)** is a straightforward and cost-effective method that directly converts the weights of a pre-trained model to lower precision without requiring any additional training. It reduces the model's size and improves inference speed.
+* **Quantization-Aware Training (QAT)** introduced by [Jacob et al. 2017](https://arxiv.org/abs/1712.05877)[^ref-qat], allows for training models with lower-precision weights and activations during the forward pass. This reduces memory usage and improves inference speed. However, the backward pass, which calculates gradients for weight updates, still uses full precision to maintain accuracy. While QAT typically leads to higher quality quantized models compared to post-training quantization (PTQ), it requires a more complex setup. Fortunately, mainstream ML platforms like TensorFlow offer support for both QAT and PTQ (e.g. [QAT support in Tensorflow](https://www.tensorflow.org/model_optimization/guide/quantization/training)).
  
 
-<!-- TOC --><a name="sota-developments-smoothquant"></a>
-#### SOTA Developments - SmoothQuant
+<!-- TOC --><a name="smoothquant"></a>
+#### SmoothQuant
 **SmoothQuant[^ref-smoothquant]** ([Xiao et al. 2023](https://arxiv.org/abs/2211.10438)) discovered that outliers in activations become more prevalent as the model size grows. These outliers can significantly degrade quantization performance (illustrated in the figure below), leading to higher quantization errors and potentially impacting the quality of the quantized model.  In contrast, the weights have fewer outliers and are generally easier to quantize.
 
 <p align="center">
@@ -113,8 +113,8 @@ The key idea of SmoothQuant is to migrate part of the quantization challenges fr
   Figure 3: SmoothQuant Intuition [from SmoothQuant paper]
 </p>
 
-<!-- TOC --><a name="sota-developments-awq"></a>
-#### SOTA Developments - AWQ
+<!-- TOC --><a name="activation-aware-weight-quantization-awq"></a>
+#### Activation-aware Weight Quantization (AWQ)
 **AWQ** ([Lin et al, 2024](https://arxiv.org/abs/2306.00978))[^ref-awq]
 
 
@@ -150,8 +150,8 @@ TODO - add more details
 <!-- TOC --><a name="transformer-model-architecture-optimization"></a>
 ### Transformer Model Architecture Optimization
 
-<!-- TOC --><a name="multi-query-attention-mqa-and-grouped-query-attention-gqa"></a>
-#### Multi-Query Attention (MQA) and Grouped-Query Attention (GQA)
+<!-- TOC --><a name="multi-query-and-grouped-query-attention"></a>
+#### Multi-Query and Grouped-Query Attention
 As mentioned previously, the size of KV cache is propotional to `d_model`, i.e. `n_heads * d_model/n_heads`. One optimization proposed in ([Shazeer et al 2019](https://arxiv.org/abs/1911.02150))[^ref-mqa] to reduce the KV cache size is to let all heads share the same key and value, but still using different queries. This eliminates the `n_heads` multiplier and the KV cache size is propotional to `d_model/n_heads`.
 
 <p align="center">
@@ -161,8 +161,8 @@ As mentioned previously, the size of KV cache is propotional to `d_model`, i.e. 
 
 Later, [Ainslie et al 2023](https://arxiv.org/abs/2305.13245) [^ref-gqa] discovered that MQA is too aggressive and the model performance starts to degrade, especially when the model size increases. Grouped-Query Attention (GQA) [^ref-gqa] was proposed to have a group of queries (instead of all) sharing the same key and value, which is a tradeoff between KV cache size optimization and model quality. GQA has already been adopted in the recently released Llama-3[^ref-llama3] ([Dubey et al 2024](https://arxiv.org/abs/2407.21783)) model.
 
-<!-- TOC --><a name="mixture-of-expert-moe"></a>
-#### Mixture of Expert (MOE)
+<!-- TOC --><a name="mixture-of-expert"></a>
+#### Mixture of Expert
 
 
 <!-- TOC --><a name="implementation-system-optimization"></a>
