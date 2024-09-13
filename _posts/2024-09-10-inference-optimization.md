@@ -141,11 +141,13 @@ It uses a higher temperature to soften the learning objective (the relationship 
   Figure 4: Visualizing the Effects of Temperature Scaling [source: https://medium.com/@harshit158/softmax-temperature-5492e4007f71]
 </p>
 
-Denoting the logits before the final softmax layer as **$z_t$** and **$z_s$** for teacher and student models, label as **$y$**, temperature as **$T$**, the learning objective described in the original paper can be represented as:
+Denoting the logits before the final softmax layer as **$z_t$** and **$z_s$** for teacher and student models, label as **$y$**, temperature as **$T$**, the learning objective described in the original paper can be represented as (formulas can't correctly rendered in this blog template):
 
-$$L_\text{Distillation} = L_\text{CE}(\text{Softmax}(z_t, T), \text{Softmax}(z_s, T)) + \lambda L_\text{CE}(\text{Softmax}(z_s, 1), y)$$
+<!-- $$L_\text{Distillation} = L_\text{CE}(\text{Softmax}(z_t, T), \text{Softmax}(z_s, T)) + \lambda L_\text{CE}(\text{Softmax}(z_s, 1), y)$$ -->
 
-$$L_{Distillation}$$
+* `L_KD = L_CE(Softmax(z_t, T), Softmax(z_s, T)) + \lambda * L_CE(Softmax(z_s, 1), y)`
+
+
 
 <!-- TOC --><a name="pruning-sparsity"></a>
 ### Pruning & Sparsity
