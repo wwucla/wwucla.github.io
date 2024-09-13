@@ -20,7 +20,7 @@
    * [Pruning & Sparsity](#pruning-sparsity)
    * [Transformer Model Architecture Optimization](#transformer-model-architecture-optimization)
       + [Multi-Query and Grouped-Query Attention](#multi-query-and-grouped-query-attention)
-      + [Mixture of Expert](#mixture-of-expert)
+      + [Mixture of Experts](#mixture-of-experts)
 - [Implementation / System Optimization](#implementation-system-optimization)
    * [vLLM (PagedAttention)](#vllm-pagedattention)
    * [StreamingLLM](#streamingllm)
@@ -175,7 +175,7 @@ In the study of Llama2 model[^ref-llama2] ([Touvron et al., 2023](https://arxiv.
 <!-- TOC --><a name="mixture-of-experts"></a>
 #### Mixture of Experts
 
-The key idea of Mixture of Experts (MoE) is to **enforce sparsity** in model architecture, by allowing the model to scale up the parameter size (i.e. using multiple experts) without increasing computational cost. The idea of MoE is not new, which can be traced back to [Jacobs et al., 1991](https://ieeexplore.ieee.org/abstract/document/6797059)[^ref-moe].
+The key idea of Mixture of Experts (MoE) is to **enforce sparsity** in model architecture, by allowing the model to scale up the parameter size (i.e. multiple experts) without increasing computational cost. The idea of MoE is not new and can be traced back to [Jacobs et al., 1991](https://ieeexplore.ieee.org/abstract/document/6797059)[^ref-moe].
 
 The combination of MoE has been explored by Google in **GShard**[^ref-gshard] ([Lepikhin et al., 2020](https://arxiv.org/abs/2006.16668)) and **SwitchTransformer**[^ref-switch-transformer] ([Fedus et al., 2022](https://arxiv.org/abs/2101.03961)), which replace the FFN layers in attention with MoE layers (router + smaller FFNs as illustrated below).
 
@@ -184,17 +184,17 @@ The combination of MoE has been explored by Google in **GShard**[^ref-gshard] ([
   Figure: Scaling of Transformer Encoder with MoE layers in GShard
 </p>
 
-The MoE architecture introduces challenges to model training, fine-tuning and inference (all experts need to be stored which consumes memory). Particularly, the challenge for training and fine-tuning is the load-balancing of each expert. Some experts might be exposed to a smaller amount of training tokens than others. **GShard** introduces a 2-experts strategy with the following considerations:
+The MoE architecture introduces challenges to model training, fine-tuning, and inference (all experts need to be stored which consumes memory). Particularly, the challenge for training and fine-tuning is the load-balancing of each expert. Some experts might be exposed to a smaller amount of training tokens than others. **GShard** introduces a 2-experts strategy with the following considerations:
 * **Random routing**: always selects 2 experts, the top-1 and a randomly selected expert based on the softmax probability of the router.
-* **Expert Capacity**: introduces an expert capacity to limit how many tokens can be processed by one expert. When both experts are at capacity, it skip current layer via a residual connection (some implementation drops the token for training). Another benefit of the capacity is that we can anticipate at most how many tokens will go to each expert ahead of time.
+* **Expert Capacity**: introduces an expert capacity to limit how many tokens can be processed by one expert. When both experts are at capacity, it skips the current layer via a residual connection (some implementation drops the token for training). Another benefit of the capacity is that we can anticipate at most how many tokens will go to each expert ahead of time.
 
 <p align="center">
   <img src="/images/inference-optimization/switch_transformer.png" width="600"><br />
   Figure: Switch Transformer Architecture
 </p>
 
-**SwitchTransformer** simplifies the 2-expert design in GShard to a single-expert strategy and introduces other ideas such as auxiliary loss and selective precison.
-* **Single-expert strategy**: simplified strategy but preserves model quality, reduces routing computation and performs better.
+**SwitchTransformer** simplifies the 2-expert design in GShard to a single-expert strategy and introduces other ideas such as auxiliary loss and selective precision.
+* **Single-expert strategy**: simplified strategy but preserves model quality, reduces routing computation, and performs better.
 * **Auxiliary loss**: added to the switch layer at training time to encourage uniform routing. Similar to other regularizations, it can be weighted using a hyperparameter.
 * **Selective precision**: uses FP32 for routing operations and FP16 elsewhere, which stabilizes the model yet improves the training speed (detail in the table below).
 
