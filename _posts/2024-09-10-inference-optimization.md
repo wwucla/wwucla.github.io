@@ -81,7 +81,7 @@ Then, we'll delve into optimizations tailored to transformer models, discussing 
 <!-- TOC --><a name="quantization"></a>
 ### Quantization
 
-This section explores various quantization techniques, including weight-only and mixed (weight and activation) quantization. We'll discuss post-training quantization methods and quantization-aware training. Additionally, we'll delve into a few SOTA quantization advancements, such as SmoothQuant and activation-aware weight quantization (AWQ).
+This section explores various quantization techniques, including weight-only or weight+activation quantization. We'll discuss post-training quantization methods and quantization-aware training. Additionally, we'll delve into a few SOTA quantization advancements, such as SmoothQuant and activation-aware weight quantization (AWQ).
 
 <!-- TOC --><a name="weights-only-vs-activation-quantization"></a>
 #### Weights-only vs Activation Quantization
