@@ -214,21 +214,21 @@ There are more developments in MoE, which I can cover in a dedicated note.
 
 <p align="center">
   <img src="/images/inference-optimization/vllm_memory_waste.png" width="500"><br />
-  Figure: Memory waste in KV cache memory management
+  Figure: Memory waste in KV cache memory management [source: vLLM paper]
 </p>
 
-It proposes a vLLM that borrows the idea of **page table** in the operating system and applies it for KV cache memory management, namely **KV Cache Manager**. The KV Cache Manager keeps track of the logical block of memory used by each request and maps them to the physical KV block, as illustrated in the figure below.
+It proposes a vLLM that borrows the idea of **page table** in the operating system and applies it for KV cache memory management, namely **KV Cache Manager**. The KV Cache Manager keeps track of each request's logical block of memory and maps them to the physical KV block, as illustrated in the figure below.
 
 <p align="center">
   <img src="/images/inference-optimization/vllm_page_table.png" width="500"><br />
-  Figure: "Block Table" that maps logical KV blocks to physical KV blocks
+  Figure: "Block Table" that maps logical KV blocks to physical KV blocks [source: vLLM paper]
 </p>
 
 <!-- TOC --><a name="streamingllm"></a>
 ### StreamingLLM
-[Xiao et al., 2023](https://arxiv.org/abs/2309.17453) [^ref-streamingllm]
+([Xiao et al., 2023](https://arxiv.org/abs/2309.17453)) [^ref-streamingllm]
 
-To support super long context, an artificial **attention sink** was used to preserve model quality.
+To support super long context, an artificial **attention sink** was used to preserve model quality, and **Sliding Window Attention** was used to boost performance. It also used the PagedAttention proposed in the previous section, which allows easily pin-coding the first token (attention sink) in the memory.
 
 <!-- TOC --><a name="flashattention"></a>
 ### FlashAttention
