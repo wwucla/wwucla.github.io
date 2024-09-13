@@ -210,19 +210,27 @@ There are more developments in MoE, which I can cover in a dedicated note.
 <!-- TOC --><a name="vllm-pagedattention"></a>
 ### vLLM (PagedAttention)
 
-[Kwon et al., 2023](https://arxiv.org/abs/2309.06180) [^ref-vllm] called out the challenges of inefficient memory usage (KV cache) while serving a batch of multiple requests at a time. Because the KV cache size can grow and shrink dramatically, depending on the context and generated token length. Pre-allocating KV cache could cause significantly wasted memory due to fragmentation and redundant duplication (when the sequence is too long and memory needs to be reallocated).
+[Kwon et al., 2023](https://arxiv.org/abs/2309.06180) [^ref-vllm] highlighted the significant memory inefficiency of traditional KV cache management in large language models (LLMs) serving multiple requests simultaneously. The dynamic nature of KV cache sizes, varying based on context and generated token length, often leads to wasted memory due to over-allocation or fragmentation, illustrated as below.
 
 <p align="center">
   <img src="/images/inference-optimization/vllm_memory_waste.png" width="800"><br />
   Figure: Memory waste in KV cache memory management [source: vLLM paper]
 </p>
 
-It proposes a vLLM that borrows the idea of **page table** in the operating system and applies it for KV cache memory management, namely **KV Cache Manager**. The KV Cache Manager keeps track of each request's logical block of memory and maps them to the physical KV block, as illustrated in the figure below.
+**vLLM's Paged Attention Approach**
+
+To address this issue, vLLM introduces a novel KV cache management technique inspired by operating system page tables. The **KV Cache Manager** maintains a logical-to-physical mapping between each request's KV cache and underlying physical memory blocks. This approach offers several key advantages:
+
+* **Efficient Memory Utilization**: By allocating physical memory in fixed-size pages, vLLM minimizes fragmentation and reduces memory waste.
+* **Dynamic Scaling**: The system can efficiently handle requests of varying sizes by allocating or deallocating pages as needed, ensuring optimal memory usage.
+* **Simplified Management**: The page table abstraction simplifies KV cache management, making it easier to implement and maintain.
 
 <p align="center">
   <img src="/images/inference-optimization/vllm_page_table.png" width="400"><br />
   Figure: "Block Table" that maps logical KV blocks to physical KV blocks [source: vLLM paper]
 </p>
+
+In conclusion, vLLM's paged attention mechanism provides a more efficient and scalable solution for managing KV caches in LLMs, enabling improved performance and resource utilization.
 
 <!-- TOC --><a name="streamingllm"></a>
 ### StreamingLLM
