@@ -86,13 +86,15 @@ This section explores various quantization techniques, including weight-only or 
 <!-- TOC --><a name="weights-only-vs-activation-quantization"></a>
 #### Weights-only vs Activation Quantization
 * **Weights-only Quantization (WOQ)** 
-  * WOQ focuses on quantizing the model weights. It reduces the model size, leading to faster loading time and lower memory usage during inference. Typically used precision formats are INT8 or INT4 for weights, while activations remain in FP16 for better accuracy. Recently Nvidia hardware added support for [FP8](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html), providing another alternative for quantization.
+  * WOQ focuses on quantizing the model weights. It reduces the model size, leading to faster loading time and lower memory usage during inference. 
   * WOQ can be a good trade-off between model size and accuracy, especially for large language models (LLMs) where memory bandwidth is a major bottleneck.
 * **Activation Quantization (AQ)**
   * AQ quantizes both the weights and activations of the model. It can potentially achieve higher compression ratios compared to WOQ. However, it's more prone to accuracy degradation due to the presence of **outliers in activations**[^ref-smoothquant], which can be amplified during quantization.
   * Requires careful selection of quantization techniques to minimize accuracy loss. (to be covered later in this section)
 
- In summary, **WOQ** is generally preferred for LLMs due to its better balance of accuracy and efficiency. **AQ** can be beneficial for certain tasks if implemented carefully, but requires more fine-tuning to avoid accuracy drops.
+In summary, **WOQ** is generally preferred for LLMs due to its better balance of accuracy and efficiency. **AQ** can be beneficial for certain tasks if implemented carefully, but requires more fine-tuning to avoid accuracy drops.
+
+**Choice of quantization precisions**: Typically used precision formats are INT8 or INT4 for weights, while activations remain in FP16 for better accuracy. Recently Nvidia hardware added support for FP8 ([Micikevicius et al 2022](https://arxiv.org/abs/2209.05433))[^ref-fp8], providing another alternative for quantization.
 
 <!-- TOC --><a name="post-training-quantization-vs-quantization-aware-training"></a>
 #### Post-Training Quantization vs Quantization-Aware Training
@@ -203,6 +205,7 @@ Similar to the idea of speculative execution in a pipeline, here it uses a small
 <!-- TOC --><a name="references"></a>
 ## References
 
+[^ref-fp8]: Micikevicius, Paulius, et al. "[Fp8 formats for deep learning](https://arxiv.org/abs/2209.05433)." arXiv preprint arXiv:2209.05433 (2022).
 [^ref-llm-arch]: Ekin Karabulut, Omer Dayan. "[What it means to serve an LLM and which serving technology to choose from](https://www.run.ai/blog/serving-large-language-models)", 2024
 [^ref-smoothquant]: Xiao, Guangxuan, et al. "[SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models](https://arxiv.org/abs/2211.10438)." International Conference on Machine Learning. PMLR, 2023.
 [^ref-awq]: Lin, Ji, et al. "[AWQ: Activation-aware Weight Quantization for On-Device LLM Compression and Acceleration](https://arxiv.org/abs/2306.00978)." Proceedings of Machine Learning and Systems 6 (2024): 87-100.
