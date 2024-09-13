@@ -61,7 +61,7 @@ Due to the distinct computational patterns of the prefill and decode phases, the
 ### Challenges
 There are multiple challenges around LLM inference:
 * **Heave computation** in both prefill and decode phase
-* **Storage challenge of KV cache**: storage requirement `batch_size * n_layers * (d_model/n_heads) * n_kv_heads * 2 (K and V) * 2 (sizeof FP16) * seq_len`, propotional to `seq_len`.
+* **Storage challenge of KV cache**: storage requirement `batch_size * n_layers * d_head * n_kv_heads * 2 (K and V) * 2 (sizeof FP16) * seq_len`, where `d_head = d_model/n_head` for multi-head attention.
 * **Handling super-long context**: The capability to handle extensive sequences is essential for applications such as summarizing lengthy documents and RAG. However, this requirement often strains both storage capacity and computational resources.
 * **Efficient KV cache management when serving multiple queries**
 
@@ -157,14 +157,14 @@ TODO - add more details
 
 <!-- TOC --><a name="multi-query-and-grouped-query-attention"></a>
 #### Multi-Query and Grouped-Query Attention
-As mentioned previously, the size of KV cache is propotional to `d_model`, i.e. `n_heads * d_model/n_heads`. One optimization proposed in ([Shazeer et al 2019](https://arxiv.org/abs/1911.02150))[^ref-mqa] to reduce the KV cache size is to let all heads share the same key and value, but still using different queries. This eliminates the `n_heads` multiplier and the KV cache size is propotional to `d_model/n_heads`.
+As mentioned previously, the size of the KV cache is proportional to `d_model`, i.e. `n_kv_heads * d_head` for multi-head attention. One optimization of reducing KV cache size is multi-query attention ([Shazeer et al 2019](https://arxiv.org/abs/1911.02150))[^ref-mqa], i.e. sharing the same key and value among all heads, but still use different queries. This eliminates the `n_kv_heads` multiplier (becomes 1x) and the KV cache size is proportional to `d_head`.
 
 <p align="center">
   <img src="/images/inference-optimization/mqa_gqa.png" width="600"><br />
   Figure: Multi-Head, Group-Query, and Multi-Query Attentions 
 </p>
 
-Later, [Ainslie et al 2023](https://arxiv.org/abs/2305.13245) [^ref-gqa] discovered that MQA is too aggressive and the model performance starts to degrade, especially when the model size increases. Grouped-Query Attention (GQA) [^ref-gqa] was proposed to have a group of queries (instead of all) sharing the same key and value, which is a tradeoff between KV cache size optimization and model quality. GQA has already been adopted in the recently released Llama-3[^ref-llama3] ([Dubey et al 2024](https://arxiv.org/abs/2407.21783)) model.
+Later research ([Ainslie et al 2023](https://arxiv.org/abs/2305.13245) [^ref-gqa]) discovered that MQA was too aggressive and the model performance starts to degrade, especially when the model size increases. Grouped-Query Attention (GQA) [^ref-gqa] was proposed to have a group of queries (instead of all) sharing the same key and value, which is a tradeoff between KV cache size optimization and model quality. GQA has already been adopted in the recently released Llama-3[^ref-llama3] ([Dubey et al 2024](https://arxiv.org/abs/2407.21783)) model.
 
 <!-- TOC --><a name="mixture-of-expert"></a>
 #### Mixture of Expert
