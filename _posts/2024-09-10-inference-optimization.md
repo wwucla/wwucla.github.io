@@ -43,7 +43,7 @@ LLM inference is generally divided into two primary phases:
 
 <p align="center">
   <img src="/images/inference-optimization/two_phases.webp" width="600"><br />
-  Figure 1: Prefill and Decode phases for LLM inference [source: https://www.adyen.com/knowledge-hub/llm-inference-at-scale-with-tgi]
+  Figure 1: Prefill and Decode phases for LLM inference [source](https://www.adyen.com/knowledge-hub/llm-inference-at-scale-with-tgi)
 </p>
 
 A typical LLM inference server architecture[^ref-llm-arch] is illustrated in the figure below. It includes:
