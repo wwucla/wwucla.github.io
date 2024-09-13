@@ -99,12 +99,12 @@ In summary, **WOQ** is generally preferred for LLMs due to its better balance of
 <!-- TOC --><a name="post-training-quantization-vs-quantization-aware-training"></a>
 #### Post-Training Quantization vs Quantization-Aware Training
 * **Post-Training Quantization (PTQ)** is a straightforward and cost-effective method that directly converts the weights of a pre-trained model to lower precision without requiring any additional training. It reduces the model's size and improves inference speed.
-* **Quantization-Aware Training (QAT)** introduced by [Jacob et al. 2017](https://arxiv.org/abs/1712.05877)[^ref-qat], allows for training models with lower-precision weights and activations during the forward pass. This reduces memory usage and improves inference speed. However, the backward pass, which calculates gradients for weight updates, still uses full precision to maintain accuracy. While QAT typically leads to higher quality quantized models compared to post-training quantization (PTQ), it requires a more complex setup. Fortunately, mainstream ML platforms like TensorFlow offer support for both QAT and PTQ (e.g. [QAT support in Tensorflow](https://www.tensorflow.org/model_optimization/guide/quantization/training)).
+* **Quantization-Aware Training (QAT)** introduced by [Jacob et al., 2017](https://arxiv.org/abs/1712.05877)[^ref-qat], allows for training models with lower-precision weights and activations during the forward pass. This reduces memory usage and improves inference speed. However, the backward pass, which calculates gradients for weight updates, still uses full precision to maintain accuracy. While QAT typically leads to higher quality quantized models compared to post-training quantization (PTQ), it requires a more complex setup. Fortunately, mainstream ML platforms like TensorFlow offer support for both QAT and PTQ (e.g. [QAT support in Tensorflow](https://www.tensorflow.org/model_optimization/guide/quantization/training)).
  
 
 <!-- TOC --><a name="smoothquant"></a>
 #### SmoothQuant
-**SmoothQuant[^ref-smoothquant]** ([Xiao et al. 2023](https://arxiv.org/abs/2211.10438)) discovered that outliers in activations become more prevalent as the model size grows. These outliers can significantly degrade quantization performance (illustrated in the figure below), leading to higher quantization errors and potentially impacting the quality of the quantized model.  In contrast, the weights have fewer outliers and are generally easier to quantize.
+**SmoothQuant[^ref-smoothquant]** ([Xiao et al., 2023](https://arxiv.org/abs/2211.10438)) discovered that outliers in activations become more prevalent as the model size grows. These outliers can significantly degrade quantization performance (illustrated in the figure below), leading to higher quantization errors and potentially impacting the quality of the quantized model.  In contrast, the weights have fewer outliers and are generally easier to quantize.
 
 <p align="center">
   <img src="/images/inference-optimization/smoothquant-error-outlier.png" width="400"><br />
@@ -120,21 +120,21 @@ The key idea of SmoothQuant is to migrate part of the quantization challenges fr
 
 <!-- TOC --><a name="activation-aware-weight-quantization-awq"></a>
 #### Activation-aware Weight Quantization (AWQ)
-**AWQ** ([Lin et al, 2024](https://arxiv.org/abs/2306.00978))[^ref-awq]
+**AWQ** ([Lin et al., 2024](https://arxiv.org/abs/2306.00978))[^ref-awq]
 
 
 <!-- TOC --><a name="knowledge-distillation"></a>
 ### Knowledge Distillation
-The high-level idea of knowledge distillation ([Hinton et al, 2015](https://arxiv.org/abs/1503.02531)) is to transfer knowledge from a cumbersome teacher model to a smaller student mode. Illustrated in the figure below.
+The high-level idea of knowledge distillation ([Hinton et al., 2015](https://arxiv.org/abs/1503.02531)) is to transfer knowledge from a cumbersome teacher model to a smaller student model, illustrated in the figure below.
 
 <p align="center">
   <img src="/images/inference-optimization/kd_framework.png" width="600"><br />
   Figure 3: Knowledge Distillation Framework [source: https://arxiv.org/abs/2006.05525]
 </p>
 
-The key idea of knowledge distillation is well articulated in the following paragraph quoted from the orignal paper:
+The key idea of knowledge distillation is well articulated in the following paragraph quoted from the original paper:
 
-* *"We found that a better way is to simply use a **weighted average of two different objective functions**. The first objective function is the cross entropy with the soft targets and this cross entropy is computed using the same high temperature in the softmax of the distilled model as was used for generating the soft targets from the cumbersome model. The second objective function is the cross entropy with the correct labels. This is computed using exactly the same logits in softmax of the distilled model but at a temperature of 1. We found that the best results were generally obtained by using a **condiderably lower weight on the second objective function**"*
+* *"We found that a better way is to simply use a **weighted average of two different objective functions**. The first objective function is the cross entropy with the soft targets and this cross-entropy is computed using the same high temperature in the softmax of the distilled model as was used for generating the soft targets from the cumbersome model. The second objective function is the cross entropy with the correct labels. This is computed using exactly the same logits in softmax of the distilled model but at a temperature of 1. We found that the best results were generally obtained by using a **considerably lower weight on the second objective function**"*
 
 It uses a higher temperature to soften the learning objective (the relationship between temperature and actual labels is illustrated in the figure below).
 <p align="center">
@@ -157,14 +157,14 @@ TODO - add more details
 
 <!-- TOC --><a name="multi-query-and-grouped-query-attention"></a>
 #### Multi-Query and Grouped-Query Attention
-As mentioned previously, the size of the KV cache is proportional to `d_model`, i.e. `n_kv_heads * d_head` for multi-head attention. One optimization of reducing KV cache size is multi-query attention ([Shazeer et al 2019](https://arxiv.org/abs/1911.02150))[^ref-mqa], i.e. sharing the same key and value among all heads, but still use different queries. This eliminates the `n_kv_heads` multiplier (becomes 1x) and the KV cache size is proportional to `d_head`.
+As mentioned previously, the size of the KV cache is proportional to `d_model`, i.e. `n_kv_heads * d_head` for multi-head attention. One optimization of reducing KV cache size is multi-query attention ([Shazeer et al., 2019](https://arxiv.org/abs/1911.02150))[^ref-mqa], i.e. sharing the same key and value among all heads, but still use different queries. This eliminates the `n_kv_heads` multiplier (becomes 1x) and the KV cache size is proportional to `d_head`.
 
 <p align="center">
   <img src="/images/inference-optimization/mqa_gqa.png" width="600"><br />
   Figure: Multi-Head, Group-Query, and Multi-Query Attentions 
 </p>
 
-Later research ([Ainslie et al 2023](https://arxiv.org/abs/2305.13245) [^ref-gqa]) discovered that MQA was too aggressive and the model performance starts to degrade, especially when the model size increases. Grouped-Query Attention (GQA) [^ref-gqa] was proposed to have a group of queries (instead of all) sharing the same key and value, which is a tradeoff between KV cache size optimization and model quality. GQA has already been adopted in the recently released Llama-3[^ref-llama3] ([Dubey et al 2024](https://arxiv.org/abs/2407.21783)) model.
+Later research ([Ainslie et al., 2023](https://arxiv.org/abs/2305.13245) [^ref-gqa]) discovered that MQA was too aggressive and the model performance starts to degrade, especially when the model size increases. Grouped-Query Attention (GQA) [^ref-gqa] was proposed to have a group of queries (instead of all) sharing the same key and value, which is a tradeoff between KV cache size optimization and model quality. GQA has already been adopted in the recently released Llama-3[^ref-llama3] ([Dubey et al., 2024](https://arxiv.org/abs/2407.21783)) model.
 
 <!-- TOC --><a name="mixture-of-expert"></a>
 #### Mixture of Expert
@@ -174,22 +174,22 @@ Later research ([Ainslie et al 2023](https://arxiv.org/abs/2305.13245) [^ref-gqa
 ## Implementation / System Optimization
 <!-- TOC --><a name="vllm-pagedattention"></a>
 ### vLLM (PagedAttention)
-[Kwon et al 2023](https://arxiv.org/abs/2309.06180) [^ref-vllm]
+[Kwon et al., 2023](https://arxiv.org/abs/2309.06180) [^ref-vllm]
 
 Use a page table to make use of fragmented memory.
 
 
 <!-- TOC --><a name="streamingllm"></a>
 ### StreamingLLM
-[Xiao et al 2023](https://arxiv.org/abs/2309.17453) [^ref-streamingllm]
+[Xiao et al., 2023](https://arxiv.org/abs/2309.17453) [^ref-streamingllm]
 
 To support super-long context, an artificial **attention sink** was used to preserve model quality.
 
 <!-- TOC --><a name="flashattention"></a>
 ### FlashAttention
-* FlashAttention ([Dao et al 2022](https://arxiv.org/abs/2205.14135)) [^ref-flashattention]
-* FlashAttention2 ([Dao et al 2022](https://arxiv.org/abs/2307.08691)) [^ref-flashattention2]
-* FlashAttention3 ([Shah et al 2024](https://arxiv.org/abs/2407.08608)) [^ref-flashattention3]
+* FlashAttention ([Dao et al., 2022](https://arxiv.org/abs/2205.14135)) [^ref-flashattention]
+* FlashAttention2 ([Dao et al., 2022](https://arxiv.org/abs/2307.08691)) [^ref-flashattention2]
+* FlashAttention3 ([Shah et al., 2024](https://arxiv.org/abs/2407.08608)) [^ref-flashattention3]
 
 It was discovered that the majority of time consumed during the context phase is I/O. FlashAttention uses the idea of tiling and only loads part of the caches when computing attention scores to ensure more computations are conducted in high-speed SRAM and achieve a 4x speedup without impacting model accuracy.
 
@@ -198,7 +198,7 @@ Flash attention is an *exact optimization*, meaning the computation will be the 
 <!-- TOC --><a name="speculative-decoding"></a>
 ### Speculative Decoding
 
-[Leviathan et al 2022](https://arxiv.org/abs/2211.17192) [^ref-spec-decoding]
+[Leviathan et al., 2022](https://arxiv.org/abs/2211.17192) [^ref-spec-decoding]
 
 Similar to the idea of speculative execution in a pipeline, here it uses a smaller LLM model to predict the next few tokens, and apply the larger model to validate the quality of the predictions. Because larger models process a group of tokens instead of one by one, there is more potential to optimize for runtime. On T5-XXL, it achieves a 2X-3X acceleration compared to the standard T5X implementation, with identical outputs.
 
