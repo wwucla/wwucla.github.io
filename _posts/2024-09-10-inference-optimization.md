@@ -37,7 +37,7 @@ Most contemporary LLMs are based on the transformer architecture. These models p
 
 <!-- TOC --><a name="two-phase-process"></a>
 ### Two-phase Process
-LLM inference is generally divided into two primary phases:
+LLM inference is generally divided into two phases:
 * **Prefill Phase** (aka initialization phase): This phase involves processing the entire input sequence and constructing key-value (KV) caches for each decoder layer. Given the availability of all input tokens, this phase is amenable to efficient parallelization, particularly for long input contexts.
 * **Decode Phase** (aka generation phase): LLM iteratively generates output tokens, using the previously generated tokens and the KV caches to compute the next token. While the decoding process is sequential, it still involves matrix-vector operations that can be parallelized.
 
@@ -66,7 +66,6 @@ There are multiple challenges around LLM inference:
 * **Efficient KV cache management when serving multiple queries**
 
 The following sections below will discuss different optimizations for LLM inference.
-
 
 <!-- TOC --><a name="algorithmic-optimization"></a>
 ## Algorithmic Optimization
@@ -157,18 +156,54 @@ TODO - add more details
 
 <!-- TOC --><a name="multi-query-and-grouped-query-attention"></a>
 #### Multi-Query and Grouped-Query Attention
-As mentioned previously, the size of the KV cache is proportional to `d_model`, i.e. `n_kv_heads * d_head` for multi-head attention. One optimization of reducing KV cache size is multi-query attention ([Shazeer et al., 2019](https://arxiv.org/abs/1911.02150))[^ref-mqa], i.e. sharing the same key and value among all heads, but still use different queries. This eliminates the `n_kv_heads` multiplier (becomes 1x) and the KV cache size is proportional to `d_head`.
+As mentioned previously, the size of the KV cache is proportional to `d_model`, i.e. `n_kv_heads * d_head` for multi-head attention. One optimization of reducing KV cache size is multi-query attention ([Shazeer et al., 2019](https://arxiv.org/abs/1911.02150))[^ref-mqa], i.e. sharing the same key and value among all heads, but still use different queries. This eliminates the `n_kv_heads` multiplier (becomes 1x) and the KV cache size is proportional to `d_head`. Different from MQA, Grouped-Query Attention[^ref-gqa] (GQA) ([Ainslie et al., 2023](https://arxiv.org/abs/2305.13245)) shares the same key and value for a group of queries (instead of all).
 
 <p align="center">
   <img src="/images/inference-optimization/mqa_gqa.png" width="600"><br />
   Figure: Multi-Head, Group-Query, and Multi-Query Attentions 
 </p>
 
-Later research discovered that MQA was too aggressive and the model performance started to degrade. Grouped-Query Attention (GQA) ([Ainslie et al., 2023](https://arxiv.org/abs/2305.13245 [^ref-gqa]) was proposed to have a group of queries (instead of all) sharing the same key and value, which is a tradeoff between KV cache size optimization and model quality. GQA has already been adopted in the recently released Llama-3[^ref-llama3] ([Dubey et al., 2024](https://arxiv.org/abs/2407.21783)) model.
+Both MQA and GQA are optimizations that trade model representability for smaller KV cache size. While MQA tries to eliminate the `n_kv_heads` multiplier, GQA is a milder optimization that allows multiple KV heads.
 
-<!-- TOC --><a name="mixture-of-expert"></a>
-#### Mixture of Expert
+In the study of Llama2 model[^ref-llama2] ([Touvron et al., 2023](https://arxiv.org/abs/2307.09288)), researchers observed that *the GQA variant performs comparably to the MHA baseline on most evaluation tasks and is better than the MQA variant on average*, details in the table below. And the later Llama-3 model [^ref-llama3] ([Dubey et al., 2024](https://arxiv.org/abs/2407.21783)) has adopted the GQA architecture.
 
+<p align="center">
+  <img src="/images/inference-optimization/gqa_quality.png" width="600"><br />
+  Figure: Accuracy comparison between MHA, MQA and GQA
+</p>
+
+<!-- TOC --><a name="mixture-of-experts"></a>
+#### Mixture of Experts
+
+The key idea of Mixture of Experts (MoE) is to **enforce sparsity** in model architecture, by allowing the model to scale up the parameter size (i.e. using multiple experts) without increasing computational cost. The idea of MoE is not new, which can be traced back to [Jacobs et al., 1991](https://ieeexplore.ieee.org/abstract/document/6797059)[^ref-moe].
+
+The combination of MoE has been explored by Google in **GShard**[^ref-gshard] ([Lepikhin et al., 2020](https://arxiv.org/abs/2006.16668)) and **SwitchTransformer**[^ref-switch-transformer] ([Fedus et al., 2022](https://arxiv.org/abs/2101.03961)), which replace the FFN layers in attention with MoE layers (router + smaller FFNs as illustrated below).
+
+<p align="center">
+  <img src="/images/inference-optimization/gshard.png" width="600"><br />
+  Figure: Scaling of Transformer Encoder with MoE layers in GShard
+</p>
+
+The MoE architecture introduces challenges to model training, fine-tuning and inference (all experts need to be stored which consumes memory). Particularly, the challenge for training and fine-tuning is the load-balancing of each expert. Some experts might be exposed to a smaller amount of training tokens than others. **GShard** introduces a 2-experts strategy with the following considerations:
+* **Random routing**: always selects 2 experts, the top-1 and a randomly selected expert based on the softmax probability of the router.
+* **Expert Capacity**: introduces an expert capacity to limit how many tokens can be processed by one expert. When both experts are at capacity, it skip current layer via a residual connection (some implementation drops the token for training). Another benefit of the capacity is that we can anticipate at most how many tokens will go to each expert ahead of time.
+
+<p align="center">
+  <img src="/images/inference-optimization/switch_transformer.png" width="600"><br />
+  Figure: Switch Transformer Architecture
+</p>
+
+**SwitchTransformer** simplifies the 2-expert design in GShard to a single-expert strategy and introduces other ideas such as auxiliary loss and selective precison.
+* **Single-expert strategy**: simplified strategy but preserves model quality, reduces routing computation and performs better.
+* **Auxiliary loss**: added to the switch layer at training time to encourage uniform routing. Similar to other regularizations, it can be weighted using a hyperparameter.
+* **Selective precision**: uses FP32 for routing operations and FP16 elsewhere, which stabilizes the model yet improves the training speed (detail in the table below).
+
+<p align="center">
+  <img src="/images/inference-optimization/moe_selective_precision.png" width="500"><br />
+  Table: Selective Precision used in Switch Transformer (FP32 for router and FP16 everywhere else)
+</p>
+
+There are more developments in MoE, which I can cover in a dedicated note.
 
 <!-- TOC --><a name="implementation-system-optimization"></a>
 ## Implementation / System Optimization
@@ -183,7 +218,7 @@ Use a page table to make use of fragmented memory.
 ### StreamingLLM
 [Xiao et al., 2023](https://arxiv.org/abs/2309.17453) [^ref-streamingllm]
 
-To support super-long context, an artificial **attention sink** was used to preserve model quality.
+To support super long context, an artificial **attention sink** was used to preserve model quality.
 
 <!-- TOC --><a name="flashattention"></a>
 ### FlashAttention
@@ -205,6 +240,10 @@ Similar to the idea of speculative execution in a pipeline, here it uses a small
 <!-- TOC --><a name="references"></a>
 ## References
 
+[^ref-gshard]: Lepikhin, Dmitry, et al. "[Gshard: Scaling giant models with conditional computation and automatic sharding](https://arxiv.org/abs/2006.16668)." arXiv preprint arXiv:2006.16668 (2020).
+[^ref-switch-transformer]: Fedus, William, Barret Zoph, and Noam Shazeer. "[Switch transformers: Scaling to trillion parameter models with simple and efficient sparsity](https://arxiv.org/abs/2101.03961)." Journal of Machine Learning Research 23.120 (2022): 1-39.
+[^ref-moe]: Jacobs, Robert A., et al. "[Adaptive mixtures of local experts](https://ieeexplore.ieee.org/abstract/document/6797059)." Neural computation 3.1 (1991): 79-87.
+[^ref-llama2]: Touvron, Hugo, et al. "[Llama 2: Open foundation and fine-tuned chat models](https://arxiv.org/abs/2307.09288)." arXiv preprint arXiv:2307.09288 (2023).
 [^ref-fp8]: Micikevicius, Paulius, et al. "[Fp8 formats for deep learning](https://arxiv.org/abs/2209.05433)." arXiv preprint arXiv:2209.05433 (2022).
 [^ref-llm-arch]: Ekin Karabulut, Omer Dayan. "[What it means to serve an LLM and which serving technology to choose from](https://www.run.ai/blog/serving-large-language-models)", 2024
 [^ref-smoothquant]: Xiao, Guangxuan, et al. "[SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models](https://arxiv.org/abs/2211.10438)." International Conference on Machine Learning. PMLR, 2023.
