@@ -98,7 +98,7 @@ In summary, **WOQ** is generally preferred for LLMs due to its better balance of
 <!-- TOC --><a name="post-training-quantization-vs-quantization-aware-training"></a>
 #### Post-Training Quantization vs Quantization-Aware Training
 * **Post-Training Quantization (PTQ)** is a straightforward and cost-effective method that directly converts the weights of a pre-trained model to lower precision without requiring any additional training. It reduces the model's size and improves inference speed.
-* **Quantization-Aware Training (QAT)** introduced by [Jacob et al., 2017](https://arxiv.org/abs/1712.05877)[^ref-qat], allows for training models with lower-precision weights and activations during the forward pass. This reduces memory usage and improves inference speed. However, the backward pass, which calculates gradients for weight updates, still uses full precision to maintain accuracy. While QAT typically leads to higher quality quantized models compared to post-training quantization (PTQ), it requires a more complex setup. Fortunately, mainstream ML platforms like TensorFlow offer support for both QAT and PTQ (e.g. [QAT support in Tensorflow](https://www.tensorflow.org/model_optimization/guide/quantization/training)).
+* **Quantization-Aware Training (QAT)** introduced by [Jacob et al., 2017](https://arxiv.org/abs/1712.05877)[^ref-qat], allows for training models with lower-precision weights and activations during the forward pass. This reduces memory usage and improves inference speed. However, the backward pass, which calculates gradients for weight updates, still uses full precision to maintain accuracy. While QAT typically leads to higher-quality quantized models compared to post-training quantization (PTQ), it requires a more complex setup. Fortunately, mainstream ML platforms like TensorFlow offer support for both QAT and PTQ (e.g. [QAT support in Tensorflow](https://www.tensorflow.org/model_optimization/guide/quantization/training)).
  
 
 <!-- TOC --><a name="smoothquant"></a>
@@ -145,7 +145,7 @@ Denoting the logits before the final softmax layer as **$z_t$** and **$z_s$** fo
 
 $$L_\text{Distillation} = L_\text{CE}(\text{Softmax}(z_t, T), \text{Softmax}(z_s, T)) + \lambda L_\text{CE}(\text{Softmax}(z_s, 1), y)$$
 
-
+$$L_{Distillation}$$
 
 <!-- TOC --><a name="pruning-sparsity"></a>
 ### Pruning & Sparsity
