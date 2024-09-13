@@ -212,9 +212,17 @@ There are more developments in MoE, which I can cover in a dedicated note.
 
 [Kwon et al., 2023](https://arxiv.org/abs/2309.06180) [^ref-vllm] called out the challenges of inefficient memory usage (KV cache) while serving a batch of multiple requests at a time. Because the KV cache size can grow and shrink dramatically, depending on the context and generated token length. Pre-allocating KV cache could cause significantly wasted memory due to fragmentation and redundant duplication (when the sequence is too long and memory needs to be reallocated).
 
+<p align="center">
+  <img src="/images/inference-optimization/vllm_memory_waste.png" width="500"><br />
+  Figure: Memory waste in KV cache memory management
+</p>
+
 It proposes a vLLM that borrows the idea of **page table** in the operating system and applies it for KV cache memory management, namely **KV Cache Manager**. The KV Cache Manager keeps track of the logical block of memory used by each request and maps them to the physical KV block, as illustrated in the figure below.
 
-
+<p align="center">
+  <img src="/images/inference-optimization/vllm_page_table.png" width="500"><br />
+  Figure: "Block Table" that maps logical KV blocks to physical KV blocks
+</p>
 
 <!-- TOC --><a name="streamingllm"></a>
 ### StreamingLLM
