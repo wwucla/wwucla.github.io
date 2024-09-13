@@ -243,7 +243,7 @@ To support super long context, an artificial **attention sink** was used to pres
 <!-- TOC --><a name="flashattention"></a>
 ### FlashAttention
 * FlashAttention ([Dao et al., 2022](https://arxiv.org/abs/2205.14135)) [^ref-flashattention]
-* FlashAttention2 ([Dao et al., 2022](https://arxiv.org/abs/2307.08691)) [^ref-flashattention2]
+* FlashAttention2 ([Dao et al., 2023](https://arxiv.org/abs/2307.08691)) [^ref-flashattention2]
 * FlashAttention3 ([Shah et al., 2024](https://arxiv.org/abs/2407.08608)) [^ref-flashattention3]
 
 It was discovered that the majority of time consumed during the context phase is I/O. FlashAttention uses the idea of tiling and only loads part of the caches when computing attention scores to ensure more computations are conducted in high-speed SRAM and achieve a 4x speedup without impacting model accuracy.
