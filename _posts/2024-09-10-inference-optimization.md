@@ -8,24 +8,25 @@
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
 - [Overview](#overview)
-   * [Two-phase Process](#two-phase-process)
-   * [Challenges](#challenges)
+  * [Two-phase Process](#two-phase-process)
+  * [Challenges](#challenges)
 - [Algorithmic Optimization](#algorithmic-optimization)
-   * [Quantization](#quantization)
-      + [Weights-only vs Activation Quantization](#weights-only-vs-activation-quantization)
-      + [Post-Training Quantization vs Quantization-Aware Training](#post-training-quantization-vs-quantization-aware-training)
-      + [SmoothQuant](#smoothquant)
-      + [Activation-aware Weight Quantization (AWQ)](#activation-aware-weight-quantization-awq)
-   * [Knowledge Distillation](#knowledge-distillation)
-   * [Pruning & Sparsity](#pruning-sparsity)
-   * [Transformer Model Architecture Optimization](#transformer-model-architecture-optimization)
-      + [Multi-Query and Grouped-Query Attention](#multi-query-and-grouped-query-attention)
-      + [Mixture of Experts](#mixture-of-experts)
-- [Implementation / System Optimization](#implementation-system-optimization)
-   * [vLLM (PagedAttention)](#vllm-pagedattention)
-   * [StreamingLLM](#streamingllm)
-   * [FlashAttention](#flashattention)
-   * [Speculative Decoding](#speculative-decoding)
+  * [Quantization](#quantization)
+    + [Weights-only vs Activation Quantization](#weights-only-vs-activation-quantization)
+    + [Post-Training Quantization vs Quantization-Aware Training](#post-training-quantization-vs-quantization-aware-training)
+    + [SmoothQuant](#smoothquant)
+    + [Activation-aware Weight Quantization (AWQ)](#activation-aware-weight-quantization-awq)
+  * [Knowledge Distillation](#knowledge-distillation)
+  * [Pruning & Sparsity](#pruning--sparsity)
+  * [Transformer Model Architecture Optimization](#transformer-model-architecture-optimization)
+    + [Multi-Query and Grouped-Query Attention](#multi-query-and-grouped-query-attention)
+    + [Mixture of Experts](#mixture-of-experts)
+- [Implementation / System Optimization](#implementation--system-optimization)
+  * [vLLM (PagedAttention)](#vllm-pagedattention)
+  * [Longformer](#longformer)
+  * [StreamingLLM](#streamingllm)
+  * [FlashAttention](#flashattention)
+  * [Speculative Decoding](#speculative-decoding)
 - [References](#references)
 
 <!-- TOC end -->
@@ -149,7 +150,7 @@ Denoting the logits before the final softmax layer as **$z_t$** and **$z_s$** fo
 
 
 
-<!-- TOC --><a name="pruning-sparsity"></a>
+<!-- TOC --><a name="pruning--sparsity"></a>
 ### Pruning & Sparsity
 TODO - add more details
 
@@ -207,7 +208,7 @@ The MoE architecture introduces challenges to model training, fine-tuning, and i
 
 There are more developments in MoE, which I can cover in a dedicated note.
 
-<!-- TOC --><a name="implementation-system-optimization"></a>
+<!-- TOC --><a name="implementation--system-optimization"></a>
 ## Implementation / System Optimization
 <!-- TOC --><a name="vllm-pagedattention"></a>
 ### vLLM (PagedAttention)
@@ -234,6 +235,7 @@ To address this issue, vLLM introduces a novel KV cache management technique ins
 
 In conclusion, vLLM's paged attention mechanism provides a more efficient and scalable solution for managing KV caches in LLMs, enabling improved performance and resource utilization.
 
+<!-- TOC --><a name="longformer"></a>
 ### Longformer
 
 Longformer[^ref-longformer] ([Beltagy et al., 2020](https://arxiv.org/abs/2004.05150)) was designed to handle long documents more efficiently than traditional transformers. The main limitation of standard transformers is their quadratic scaling with sequence length, making them computationally expensive for long inputs.
