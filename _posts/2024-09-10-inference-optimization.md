@@ -310,5 +310,5 @@ Similar to the idea of speculative execution in a pipeline, here it uses a small
 [^ref-llama3]: Dubey, Abhimanyu, et al. "[The llama 3 herd of models](https://arxiv.org/abs/2407.21783)." arXiv preprint arXiv:2407.21783 (2024).
 [^ref-mqa]: Shazeer, Noam. "[Fast transformer decoding: One write-head is all you need](https://arxiv.org/abs/1911.02150)." arXiv preprint arXiv:1911.02150 (2019).
 [^ref-gqa]: Ainslie, Joshua, et al. "[GQA: Training generalized multi-query transformer models from multi-head checkpoints](https://arxiv.org/abs/2305.13245)." arXiv preprint arXiv:2305.13245 (2023).
-[^ref-longformer] Beltagy, Iz, Matthew E. Peters, and Arman Cohan. "[Longformer: The long-document transformer](https://arxiv.org/abs/2004.05150)." arXiv preprint arXiv:2004.05150 (2020).
+[^ref-longformer]: Beltagy, Iz, Matthew E. Peters, and Arman Cohan. "[Longformer: The long-document transformer](https://arxiv.org/abs/2004.05150)." arXiv preprint arXiv:2004.05150 (2020).
 
