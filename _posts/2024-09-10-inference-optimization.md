@@ -238,7 +238,7 @@ In conclusion, vLLM's paged attention mechanism provides a more efficient and sc
 <!-- TOC --><a name="longformer"></a>
 ### Longformer
 
-Longformer[^ref-longformer] ([Beltagy et al., 2020](https://arxiv.org/abs/2004.05150)) was designed to handle long documents more efficiently than traditional transformers. The main limitation of standard transformers is their quadratic scaling with sequence length, making them computationally expensive for long inputs.
+Longformer ([Beltagy et al., 2020](https://arxiv.org/abs/2004.05150)) [^ref-longformer] was designed to handle long documents more efficiently than traditional transformers. The main limitation of standard transformers is their quadratic scaling with sequence length, making them computationally expensive for long inputs.
 
 To address this, **Longformer** introduces a novel attention mechanism that combines local windowed attention with task-motivated global attention, as illustrated below. This allows the model to focus on relevant parts of the document while still capturing long-range dependencies. 
 
