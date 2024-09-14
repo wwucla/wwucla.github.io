@@ -253,7 +253,7 @@ It has shown state-of-the-art results on various long-document tasks, demonstrat
 
 <!-- TOC --><a name="streamingllm"></a>
 ### StreamingLLM
-([Xiao et al., 2023](https://arxiv.org/abs/2309.17453)) [^ref-streamingllm] brought up additional challenges introduced by long sequences: 1) Excessive memory usage due to KV cache (in addition to long decoding latency), 2) Existing models have limited length extrapolation abilities, i.e., their performance degrades when the sequence length goes beyond the attention window size set during pre-training. While **Longformer** ensures constant memory usage and decoding speed, after the cache is initially filled, the model collapses once the sequence length exceeds the cache size, i.e., even just evicting the KV of the first token, as illustrated in the figure below.
+([Xiao et al., 2023](https://arxiv.org/abs/2309.17453)) [^ref-streamingllm] brought up additional challenges of decoding with long sequences: 1) excessive memory usage due to KV cache (in addition to long decoding latency), 2) limited length extrapolation abilities of existing models, i.e., their performance degrades when the sequence length goes beyond the attention window size set during pre-training. While **Longformer** ensures constant memory usage and decoding speed, after the cache is initially filled, the model collapses once the sequence length exceeds the cache size, i.e., even just evicting the KV of the first token, as illustrated in the figure below.
 
 <p align="center">
   <img src="/images/inference-optimization/longform_collapse.png" width="700"><br />
