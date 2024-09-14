@@ -5,7 +5,7 @@
 
 **TL;DR**: This note provides a comprehensive overview of LLM inference, including challenges it presents and potential solutions through algorithmic optimization and system implementation improvements.
 
-Estimated read time: 20 mins
+Estimated reading time: 20 mins
 
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
