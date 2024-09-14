@@ -234,11 +234,40 @@ To address this issue, vLLM introduces a novel KV cache management technique ins
 
 In conclusion, vLLM's paged attention mechanism provides a more efficient and scalable solution for managing KV caches in LLMs, enabling improved performance and resource utilization.
 
+### Longformer
+
+Longformer[^ref-longformer] ([Beltagy et al., 2020](https://arxiv.org/abs/2004.05150)) was designed to handle long documents more efficiently than traditional transformers. The main limitation of standard transformers is their quadratic scaling with sequence length, making them computationally expensive for long inputs.
+
+To address this, **Longformer** introduces a novel attention mechanism that combines local windowed attention with task-motivated global attention, as illustrated below. This allows the model to focus on relevant parts of the document while still capturing long-range dependencies. 
+
+<p align="center">
+  <img src="/images/inference-optimization/longformer.png" width="800"><br />
+  Figure: Local windowed attention + task-motivated global attention used by Longformer [source: Longformer paper]
+</p>
+
+It has shown state-of-the-art results on various long-document tasks, demonstrating its effectiveness in handling long sequences while maintaining high performance.
+
+
+
 <!-- TOC --><a name="streamingllm"></a>
 ### StreamingLLM
-([Xiao et al., 2023](https://arxiv.org/abs/2309.17453)) [^ref-streamingllm]
+([Xiao et al., 2023](https://arxiv.org/abs/2309.17453)) [^ref-streamingllm] brought up additional challenges introduced by long sequences: 1) Excessive memory usage due to KV cache (in addition to long decoding latency), 2) Existing models have limited length extrapolation abilities, i.e., their performance degrades when the sequence length goes beyond the attention window size set during pre-training. While **Longformer** ensures constant memory usage and decoding speed, after the cache is initially filled, the model collapses once the sequence length exceeds the cache size, i.e., even just evicting the KV of the first token, as illustrated in the figure below.
 
-To support super long context, an artificial **attention sink** was used to preserve model quality, and **Sliding Window Attention** was used to boost performance. It also used the PagedAttention proposed in the previous section, which allows easily pin-coding the first token (attention sink) in the memory.
+<p align="center">
+  <img src="/images/inference-optimization/longform_collapse.png" width="700"><br />
+  Figure: StreamingLLM vs traditional windowed attentions which collapse once input length exceeds the cache size [source: StreamingLLM paper]
+</p>
+
+[Xiao et al., 2023](https://arxiv.org/abs/2309.17453 observed an interesting phenomenon, namely **attention sink**, that keeping the KV of initial tokens will largely recover the performance of window attention. It also demonstrated that the emergence of attention sink is due to the strong attention scores towards initial tokens as a “sink” even if they are not semantically important.
+
+With these observations, **StreamingLLM** proposed using **a rolling KV cache while always keeping attention sinks**, enabling LLMs trained with a finite length attention window to generalize to infinite sequence length without fine-tuning. In addition, we discover that adding a placeholder token as an artificial attention sink during pre-training can further improve streaming deployment.
+
+<p align="center">
+  <img src="/images/inference-optimization/streamingllm.png" width="700"><br />
+  Figure: StreamingLLM vs existing methods [source: StreamingLLM paper]
+</p>
+
+In streaming settings, StreamingLLM outperforms the sliding window recomputation baseline by up to 22.2× speedup. Interestingly, it also adopted the **PagedAttention** proposed in the previous section, which allows easy pin-coding of the physical KV block of attention sink tokens in memory.
 
 <!-- TOC --><a name="flashattention"></a>
 ### FlashAttention
@@ -259,7 +288,7 @@ Similar to the idea of speculative execution in a pipeline, here it uses a small
 
 <!-- TOC --><a name="references"></a>
 ## References
-
+[^ref-longformer] Beltagy, Iz, Matthew E. Peters, and Arman Cohan. "[Longformer: The long-document transformer](https://arxiv.org/abs/2004.05150)." arXiv preprint arXiv:2004.05150 (2020).
 [^ref-gshard]: Lepikhin, Dmitry, et al. "[Gshard: Scaling giant models with conditional computation and automatic sharding](https://arxiv.org/abs/2006.16668)." arXiv preprint arXiv:2006.16668 (2020).
 [^ref-switch-transformer]: Fedus, William, Barret Zoph, and Noam Shazeer. "[Switch transformers: Scaling to trillion parameter models with simple and efficient sparsity](https://arxiv.org/abs/2101.03961)." Journal of Machine Learning Research 23.120 (2022): 1-39.
 [^ref-moe]: Jacobs, Robert A., et al. "[Adaptive mixtures of local experts](https://ieeexplore.ieee.org/abstract/document/6797059)." Neural computation 3.1 (1991): 79-87.
