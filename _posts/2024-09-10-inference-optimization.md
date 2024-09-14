@@ -278,14 +278,14 @@ In streaming settings, StreamingLLM outperforms the sliding window recomputation
 * FlashAttention2 ([Dao et al., 2023](https://arxiv.org/abs/2307.08691)) [^ref-flashattention2]
 * FlashAttention3 ([Shah et al., 2024](https://arxiv.org/abs/2407.08608)) [^ref-flashattention3]
 
-It was discovered that the majority of time consumed during the context phase is I/O. FlashAttention ([Dao et al., 2022](https://arxiv.org/abs/2205.14135)) [^ref-flashattention] uses the idea of tiling and only loads part of the caches when computing attention scores to ensure more computations are conducted in high-speed SRAM instead of materializing larger NxN attention score matrix on relatively slow GPU HBM and achieve a 4x speedup without impacting model accuracy.
+It was discovered that the majority of time consumed during the context phase is I/O. **FlashAttention** ([Dao et al., 2022](https://arxiv.org/abs/2205.14135)) [^ref-flashattention] uses the idea of tiling and only loads part of the caches when computing attention scores to ensure more computations are conducted in high-speed SRAM instead of materializing larger NxN attention score matrix on relatively slow GPU HBM and achieve a 4x speedup without impacting model accuracy.
 
 <p align="center">
   <img src="/images/inference-optimization/flash_attention.png" width="700"><br />
   Figure: StreamingLLM vs existing methods [source: FlashAttention paper]
 </p>
 
-Note that FlashAttention is an *exact optimization*, meaning the computation will be the same as the conventional attention. It only optimizes data access patterns (through tiling) to reduce the I/O overhead.
+FlashAttention is an **exact optimization**, meaning the computation remains the same as conventional attentions while achieving speedup by optimizing data access patterns (through tiling) and reducing the I/O overhead. You can also find their later work of FlashAttention2 ([Dao et al., 2023](https://arxiv.org/abs/2307.08691)) [^ref-flashattention2] and FlashAttention3 ([Shah et al., 2024](https://arxiv.org/abs/2407.08608)) [^ref-flashattention3], but I will skip the details here.
 
 <!-- TOC --><a name="speculative-decoding"></a>
 ### Speculative Decoding
