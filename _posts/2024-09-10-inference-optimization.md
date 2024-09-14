@@ -292,7 +292,6 @@ Similar to the idea of speculative execution in a pipeline, here it uses a small
 
 <!-- TOC --><a name="references"></a>
 ## References
-[^ref-longformer] Beltagy, Iz, Matthew E. Peters, and Arman Cohan. "[Longformer: The long-document transformer](https://arxiv.org/abs/2004.05150)." arXiv preprint arXiv:2004.05150 (2020).
 [^ref-gshard]: Lepikhin, Dmitry, et al. "[Gshard: Scaling giant models with conditional computation and automatic sharding](https://arxiv.org/abs/2006.16668)." arXiv preprint arXiv:2006.16668 (2020).
 [^ref-switch-transformer]: Fedus, William, Barret Zoph, and Noam Shazeer. "[Switch transformers: Scaling to trillion parameter models with simple and efficient sparsity](https://arxiv.org/abs/2101.03961)." Journal of Machine Learning Research 23.120 (2022): 1-39.
 [^ref-moe]: Jacobs, Robert A., et al. "[Adaptive mixtures of local experts](https://ieeexplore.ieee.org/abstract/document/6797059)." Neural computation 3.1 (1991): 79-87.
@@ -311,3 +310,5 @@ Similar to the idea of speculative execution in a pipeline, here it uses a small
 [^ref-llama3]: Dubey, Abhimanyu, et al. "[The llama 3 herd of models](https://arxiv.org/abs/2407.21783)." arXiv preprint arXiv:2407.21783 (2024).
 [^ref-mqa]: Shazeer, Noam. "[Fast transformer decoding: One write-head is all you need](https://arxiv.org/abs/1911.02150)." arXiv preprint arXiv:1911.02150 (2019).
 [^ref-gqa]: Ainslie, Joshua, et al. "[GQA: Training generalized multi-query transformer models from multi-head checkpoints](https://arxiv.org/abs/2305.13245)." arXiv preprint arXiv:2305.13245 (2023).
+[^ref-longformer] Beltagy, Iz, Matthew E. Peters, and Arman Cohan. "[Longformer: The long-document transformer](https://arxiv.org/abs/2004.05150)." arXiv preprint arXiv:2004.05150 (2020).
+
