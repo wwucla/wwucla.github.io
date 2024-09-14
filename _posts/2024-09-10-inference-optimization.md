@@ -260,7 +260,7 @@ It has shown state-of-the-art results on various long-document tasks, demonstrat
   Figure: StreamingLLM vs traditional windowed attentions which collapse once input length exceeds the cache size [source: StreamingLLM paper]
 </p>
 
-[Xiao et al., 2023](https://arxiv.org/abs/2309.17453 observed an interesting phenomenon, namely **attention sink**, that keeping the KV of initial tokens will largely recover the performance of window attention. It also demonstrated that the emergence of attention sink is due to the strong attention scores towards initial tokens as a “sink” even if they are not semantically important.
+[Xiao et al., 2023](https://arxiv.org/abs/2309.17453) observed an interesting phenomenon, namely **attention sink**, that keeping the KV of initial tokens will largely recover the performance of window attention. It also demonstrated that the emergence of attention sink is due to the strong attention scores towards initial tokens as a “sink” even if they are not semantically important.
 
 With these observations, **StreamingLLM** proposed using **a rolling KV cache while always keeping attention sinks**, enabling LLMs trained with a finite length attention window to generalize to infinite sequence length without fine-tuning. In addition, we discover that adding a placeholder token as an artificial attention sink during pre-training can further improve streaming deployment.
 
@@ -273,13 +273,19 @@ In streaming settings, StreamingLLM outperforms the sliding window recomputation
 
 <!-- TOC --><a name="flashattention"></a>
 ### FlashAttention
+
 * FlashAttention ([Dao et al., 2022](https://arxiv.org/abs/2205.14135)) [^ref-flashattention]
 * FlashAttention2 ([Dao et al., 2023](https://arxiv.org/abs/2307.08691)) [^ref-flashattention2]
 * FlashAttention3 ([Shah et al., 2024](https://arxiv.org/abs/2407.08608)) [^ref-flashattention3]
 
-It was discovered that the majority of time consumed during the context phase is I/O. FlashAttention uses the idea of tiling and only loads part of the caches when computing attention scores to ensure more computations are conducted in high-speed SRAM and achieve a 4x speedup without impacting model accuracy.
+It was discovered that the majority of time consumed during the context phase is I/O. FlashAttention ([Dao et al., 2022](https://arxiv.org/abs/2205.14135)) [^ref-flashattention] uses the idea of tiling and only loads part of the caches when computing attention scores to ensure more computations are conducted in high-speed SRAM instead of materializing larger NxN attention score matrix on relatively slow GPU HBM and achieve a 4x speedup without impacting model accuracy.
 
-Flash attention is an *exact optimization*, meaning the computation will be the same as the conventional attention. It only optimizes data access patterns (through tiling) to reduce the I/O overhead.
+<p align="center">
+  <img src="/images/inference-optimization/flash_attention.png" width="700"><br />
+  Figure: StreamingLLM vs existing methods [source: FlashAttention paper]
+</p>
+
+Note that FlashAttention is an *exact optimization*, meaning the computation will be the same as the conventional attention. It only optimizes data access patterns (through tiling) to reduce the I/O overhead.
 
 <!-- TOC --><a name="speculative-decoding"></a>
 ### Speculative Decoding
