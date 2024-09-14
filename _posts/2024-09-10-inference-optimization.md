@@ -288,7 +288,7 @@ FlashAttention is an **exact optimization**, meaning the computation remains the
 
 [Leviathan et al., 2022](https://arxiv.org/abs/2211.17192) [^ref-spec-decoding]
 
-Similar to the idea of speculative execution in a pipeline, here it uses a smaller LLM model to predict the next few tokens, and apply the larger model to validate the quality of the predictions. Because larger models process a group of tokens instead of one by one, there is more potential to optimize for runtime. On T5-XXL, it achieves a 2X-3X acceleration compared to the standard T5X implementation, with identical outputs.
+Similar to the idea of speculative execution in a pipeline, here it uses a smaller LLM model to predict the next few tokens and applies the larger model to validate the quality of the predictions. Because larger models process a group of tokens instead of one by one, there is more potential to optimize for runtime. On T5-XXL, it achieves a 2X-3X acceleration compared to the standard T5X implementation, with identical outputs.
 
 <!-- TOC --><a name="references"></a>
 ## References
