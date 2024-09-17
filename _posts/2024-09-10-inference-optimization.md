@@ -221,7 +221,7 @@ The MoE architecture introduces challenges to model training, fine-tuning, and i
   Table: Selective Precision used in Switch Transformer (FP32 for router and FP16 everywhere else)
 </p>
 
-There are more developments in MoE, which I can cover in a dedicated note.
+There are more developments in MoE, which are too much to be included in this note. I will cover them in a dedicated note in the future.
 
 <!-- TOC --><a name="implementation--system-optimization"></a>
 ## Implementation / System Optimization
