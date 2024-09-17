@@ -110,20 +110,33 @@ In summary, **WOQ** is generally preferred for LLMs due to its better balance of
 
 <p align="center">
   <img src="/images/inference-optimization/smoothquant-error-outlier.png" width="400"><br />
-  Figure 2: Model size vs Accuracy of quantized model [from SmoothQuant paper]
+  Figure 3: Model size vs Accuracy of quantized model [from SmoothQuant paper]
 </p>
 
-The key idea of SmoothQuant is to migrate part of the quantization challenges from activation to weights, which smooths out the systematic outliers in activation, making both weights and activations easy to quantize.
+The key idea of SmoothQuant is to migrate part of the quantization challenges from activation to weights, which smooths out the systematic outliers in activation, making both weights and activations easy to quantize. The original paper details how SmoothQuant outperforms other W8A8 quantization approaches in preserving model accuracy.
 
 <p align="center">
   <img src="/images/inference-optimization/smoothquant_intuition.png" width="800"><br />
-  Figure 3: SmoothQuant Intuition [from SmoothQuant paper]
+  Figure 4: SmoothQuant Intuition [from SmoothQuant paper]
 </p>
 
 <!-- TOC --><a name="activation-aware-weight-quantization-awq"></a>
 #### Activation-aware Weight Quantization (AWQ)
-**AWQ** ([Lin et al., 2024](https://arxiv.org/abs/2306.00978))[^ref-awq]
+**AWQ** ([Lin et al., 2024](https://arxiv.org/abs/2306.00978))[^ref-awq] is a weight quantization technique designed to significantly reduce the size of LLMs for deployment on memory-constrained edge devices. Unlike SmoothQuant, which uses W8A8 quantization, AWQ primarily focuses on weight quantization (W4A16) to achieve substantial size reductions.
 
+The AWQ paper observed that naively quantizing all weights to 3-bit or 4-bit integers can lead to performance degradation due to a small subset (0.1% to 1%) of "salient" weight channels. These channels are critical for maintaining model accuracy. While ideally, these salient channels could be kept at FP16 precision while others are quantized to lower precisions, this mixed-precision approach can complicate system implementation.
+
+AWQ addresses these challenges by:
+
+1. Identifying Salient Channels: AWQ leverages activation magnitude statistics to identify salient weight channels that are more sensitive to quantization errors. That's also where the name "activation-aware" comes from.
+2. Prescaling Weights: To mitigate quantization errors and preserve accuracy, AWQ scales up weights before quantization. This scaling helps to ensure that the quantization process does not introduce excessive distortion.
+
+<p align="center">
+  <img src="/images/inference-optimization/awq.png" width="800"><br />
+  Figure 5: Salient weights and weights prescaling in AWQ
+</p>
+
+By combining these techniques, AWQ effectively achieves W4A16 quantization while minimizing performance degradation, making it a promising method for compressing LLMs for deployment on resource-limited devices.
 
 <!-- TOC --><a name="knowledge-distillation"></a>
 ### Knowledge Distillation
@@ -131,7 +144,7 @@ The high-level idea of knowledge distillation ([Hinton et al., 2015](https://arx
 
 <p align="center">
   <img src="/images/inference-optimization/kd_framework.png" width="600"><br />
-  Figure 3: Knowledge Distillation Framework [source: https://arxiv.org/abs/2006.05525]
+  Figure 6: Knowledge Distillation Framework [source: https://arxiv.org/abs/2006.05525]
 </p>
 
 The key idea of knowledge distillation is well articulated in the following paragraph quoted from the original paper:
@@ -141,7 +154,7 @@ The key idea of knowledge distillation is well articulated in the following para
 It uses a higher temperature to soften the learning objective (the relationship between temperature and actual labels is illustrated in the figure below).
 <p align="center">
   <img src="/images/inference-optimization/softmax.gif" width="300"><br />
-  Figure 4: Visualizing the Effects of Temperature Scaling [source: https://medium.com/@harshit158/softmax-temperature-5492e4007f71]
+  Figure 7: Visualizing the Effects of Temperature Scaling [source: https://medium.com/@harshit158/softmax-temperature-5492e4007f71]
 </p>
 
 Denoting the logits before the final softmax layer as **$z_t$** and **$z_s$** for teacher and student models, label as **$y$**, temperature as **$T$**, **$L$** as cross-entropy loss function, the learning objective described in the original paper can be represented as (formulas can't correctly rendered in this blog template):
@@ -165,7 +178,7 @@ As mentioned previously, the size of the KV cache is proportional to `d_model`, 
 
 <p align="center">
   <img src="/images/inference-optimization/mqa_gqa.png" width="600"><br />
-  Figure: Multi-Head, Group-Query, and Multi-Query Attentions 
+  Figure 8: Multi-Head, Group-Query, and Multi-Query Attentions 
 </p>
 
 Both MQA and GQA are optimizations that trade model representability for smaller KV cache size. While MQA tries to eliminate the `n_kv_heads` multiplier, GQA is a milder optimization that allows multiple KV heads.
@@ -174,7 +187,7 @@ In the study of Llama2 model[^ref-llama2] ([Touvron et al., 2023](https://arxiv.
 
 <p align="center">
   <img src="/images/inference-optimization/gqa_quality.png" width="600"><br />
-  Figure: Accuracy comparison between MHA, MQA and GQA
+  Figure 9: Accuracy comparison between MHA, MQA and GQA
 </p>
 
 <!-- TOC --><a name="mixture-of-experts"></a>
@@ -186,7 +199,7 @@ The combination of MoE has been explored by Google in **GShard**[^ref-gshard] ([
 
 <p align="center">
   <img src="/images/inference-optimization/gshard.png" width="600"><br />
-  Figure: Scaling of Transformer Encoder with MoE layers in GShard
+  Figure 10: Scaling of Transformer Encoder with MoE layers in GShard
 </p>
 
 The MoE architecture introduces challenges to model training, fine-tuning, and inference (all experts need to be stored which consumes memory). Particularly, the challenge for training and fine-tuning is the load-balancing of each expert. Some experts might be exposed to a smaller amount of training tokens than others. **GShard** introduces a 2-experts strategy with the following considerations:
@@ -195,7 +208,7 @@ The MoE architecture introduces challenges to model training, fine-tuning, and i
 
 <p align="center">
   <img src="/images/inference-optimization/switch_transformer.png" width="600"><br />
-  Figure: Switch Transformer Architecture
+  Figure 11: Switch Transformer Architecture
 </p>
 
 **SwitchTransformer** simplifies the 2-expert design in GShard to a single-expert strategy and introduces other ideas such as auxiliary loss and selective precision.
@@ -219,7 +232,7 @@ There are more developments in MoE, which I can cover in a dedicated note.
 
 <p align="center">
   <img src="/images/inference-optimization/vllm_memory_waste.png" width="800"><br />
-  Figure: Memory waste in KV cache memory management [source: vLLM paper]
+  Figure 12: Memory waste in KV cache memory management [source: vLLM paper]
 </p>
 
 **vLLM's Paged Attention Approach**
@@ -232,7 +245,7 @@ To address this issue, vLLM introduces a novel KV cache management technique ins
 
 <p align="center">
   <img src="/images/inference-optimization/vllm_page_table.png" width="400"><br />
-  Figure: "Block Table" that maps logical KV blocks to physical KV blocks [source: vLLM paper]
+  Figure 13: "Block Table" that maps logical KV blocks to physical KV blocks [source: vLLM paper]
 </p>
 
 In conclusion, vLLM's paged attention mechanism provides a more efficient and scalable solution for managing KV caches in LLMs, enabling improved performance and resource utilization.
@@ -246,7 +259,7 @@ To address this, **Longformer** introduces a novel attention mechanism that comb
 
 <p align="center">
   <img src="/images/inference-optimization/longformer.png" width="800"><br />
-  Figure: Local windowed attention + task-motivated global attention used by Longformer [source: Longformer paper]
+  Figure 14: Local windowed attention + task-motivated global attention used by Longformer [source: Longformer paper]
 </p>
 
 It has shown state-of-the-art results on various long-document tasks, demonstrating its effectiveness in handling long sequences while maintaining high performance.
@@ -259,7 +272,7 @@ It has shown state-of-the-art results on various long-document tasks, demonstrat
 
 <p align="center">
   <img src="/images/inference-optimization/longform_collapse.png" width="700"><br />
-  Figure: StreamingLLM vs traditional windowed attentions which collapse once input length exceeds the cache size [source: StreamingLLM paper]
+  Figure 15: StreamingLLM vs traditional windowed attentions which collapse once input length exceeds the cache size [source: StreamingLLM paper]
 </p>
 
 [Xiao et al., 2023](https://arxiv.org/abs/2309.17453) observed an interesting phenomenon, namely **attention sink**, that keeping the KV of initial tokens will largely recover the performance of window attention. It also demonstrated that the emergence of attention sink is due to the strong attention scores towards initial tokens as a “sink” even if they are not semantically important.
@@ -268,7 +281,7 @@ With these observations, **StreamingLLM** proposed using **a rolling KV cache wh
 
 <p align="center">
   <img src="/images/inference-optimization/streamingllm.png" width="700"><br />
-  Figure: StreamingLLM vs existing methods [source: StreamingLLM paper]
+  Figure 16: StreamingLLM vs existing methods [source: StreamingLLM paper]
 </p>
 
 In streaming settings, StreamingLLM outperforms the sliding window recomputation baseline by up to 22.2× speedup. Interestingly, it also adopted the **PagedAttention** proposed in the previous section, which allows easy pin-coding of the physical KV block of attention sink tokens in memory.
@@ -280,7 +293,7 @@ It was discovered that the majority of time consumed during the context phase is
 
 <p align="center">
   <img src="/images/inference-optimization/flash_attention.png" width="700"><br />
-  Figure: StreamingLLM vs existing methods [source: FlashAttention paper]
+  Figure 17: StreamingLLM vs existing methods [source: FlashAttention paper]
 </p>
 
 FlashAttention is an **exact optimization**, meaning the computation remains the same as conventional attentions while achieving speedup by optimizing data access patterns (through tiling) and reducing the I/O overhead. You can also find their later work of FlashAttention2 ([Dao et al., 2023](https://arxiv.org/abs/2307.08691)) [^ref-flashattention2] and FlashAttention3 ([Shah et al., 2024](https://arxiv.org/abs/2407.08608)) [^ref-flashattention3], but I will skip the details here.
