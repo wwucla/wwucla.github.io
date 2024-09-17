@@ -128,8 +128,8 @@ The AWQ paper observed that naively quantizing all weights to 3-bit or 4-bit int
 
 AWQ addresses these challenges by:
 
-1. Identifying Salient Channels: AWQ leverages activation magnitude statistics to identify salient weight channels that are more sensitive to quantization errors. That's also where the name "activation-aware" comes from.
-2. Prescaling Weights: To mitigate quantization errors and preserve accuracy, AWQ scales up weights before quantization. This scaling helps to ensure that the quantization process does not introduce excessive distortion.
+1. **Identifying Salient Channels**: AWQ leverages activation magnitude statistics to identify salient weight channels that are more sensitive to quantization errors. That's also where the name "activation-aware" comes from.
+2. **Prescaling Weights**: To mitigate quantization errors and preserve accuracy, AWQ scales up weights before quantization. This scaling helps to ensure that the quantization process does not introduce excessive distortion.
 
 <p align="center">
   <img src="/images/inference-optimization/awq.png" width="800"><br />
