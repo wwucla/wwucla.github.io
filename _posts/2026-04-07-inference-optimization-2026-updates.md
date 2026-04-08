@@ -6,6 +6,23 @@ Estimated reading time: 12 mins
 
 This post serves as a direct update to my 2024 article on Large Transformer Model inference. While the original discussion established the foundations of I/O awareness and memory fragmentation, the industry has since moved toward a vertically integrated stack where model architecture and hardware work in unison. Below is a high-level summary contrasting the foundational techniques with the breakthroughs that define the 2026 landscape.
 
+
+<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
+
+- [Updated Summary Table](#updated-summary-table)
+- [Overview: The 2026 Landscape](#overview-the-2026-landscape)
+- [New Algorithmic Optimization](#new-algorithmic-optimization)
+   * [Multi-Head Latent Attention (MLA)](#multi-head-latent-attention-mla)
+   * [Multi-Token Prediction (MTP) & Self-Speculation](#multi-token-prediction-mtp--self-speculation)
+- [System and Hardware Breakthroughs](#system-and-hardware-breakthroughs)
+   * [FP4 & NVFP4 (NVIDIA Blackwell)](#fp4--nvfp4-nvidia-blackwell)
+   * [RadixAttention & Prefix Caching](#radixattention--prefix-caching)
+   * [Parallel Speculative Decoding (P-EAGLE)](#parallel-speculative-decoding-p-eagle)
+- [References](#references)
+
+<!-- TOC end -->
+
+
 ## Updated Summary Table
 
 | Technique | Phase Optimized | Primary Benefit | Applications / Frameworks |
