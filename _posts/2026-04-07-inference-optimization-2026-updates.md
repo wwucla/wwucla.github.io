@@ -4,7 +4,7 @@
 
 Estimated reading time: 12 mins
 
-This post serves as a direct update to my 2024 article on Large Transformer Model inference. While the original discussion established the foundations of I/O awareness and memory fragmentation, the industry has since moved toward a vertically integrated stack where model architecture and hardware work in unison. Below is a high-level summary contrasting the foundational techniques with the breakthroughs that define the 2026 landscape.
+This post serves as a direct update to [my 2024 article](https://wwucla.github.io/2024/09/10/inference-optimization.html) on Large Transformer Model inference. While the original discussion established the foundations of I/O awareness and memory fragmentation, the industry has since moved toward a vertically integrated stack where model architecture and hardware work in unison. Below is a high-level summary contrasting the foundational techniques with the breakthroughs that define the 2026 landscape.
 
 
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
