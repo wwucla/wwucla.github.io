@@ -36,7 +36,7 @@ MTP solves the "Alignment Problem." In early implementations, the draft model of
 * **MTP Modules:** These are lightweight Transformer layers attached *after* the final layer of the trunk, typically predicting 2-4 tokens ahead as detailed in Gloeckle et al. [^ref-gloeckle-mtp].
 
 <p align="center">
-  <img src="/images/inference-2026-mtp/mtp_architecture.png" width="600">
+  <img src="/images/inference-2026-mtp/mtp_architecture.png" width="400">
   <br />
   <em>Figure 2: MTP Shared Trunk Architecture with integrated prediction heads</em>
 </p>
