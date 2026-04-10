@@ -30,6 +30,8 @@ The parameter $\alpha$ determines how much the student trusts the teacher vs. th
 
 ### Choosing $T$ (Temperature)
 Temperature controls the entropy of the soft targets. 
+
+* **Hinton's Original Recommendation:** In the seminal 2015 paper, Hinton et al. found that using a temperature in the range of **$1$ to $5$** worked best for most tasks, specifically noting that when a student is much smaller than the teacher, intermediate temperatures are often optimal [^ref-kd-hinton-2015].
 * **Small $T$ ($1$ to $2$):** Keeps the distribution "peaky." This is recommended when the student has enough capacity to match the teacher's exact confidence levels [^ref-kd-mirzadeh-2020].
 * **Large $T$ ($3$ to $10$):** Softens the distribution. This is essential when there is a significant **capacity gap** between teacher and student [^ref-kd-hinton-2015]. It prevents the student from being "overwhelmed" by the teacher's extreme certainty, focusing instead on the relative similarities between classes.
 * **Dynamic $T$:** Newer research suggests starting with a high $T$ to provide a smooth signal and decaying it as training progresses to allow the student to learn more precise boundaries [^ref-kd-li-2023].
