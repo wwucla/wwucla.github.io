@@ -1,4 +1,4 @@
-# Deep Dive: The Mechanics of Knowledge Distillation
+# The Mechanics of Knowledge Distillation - Revisit
 
 **Estimated Reading Time: 12 minutes**
 
