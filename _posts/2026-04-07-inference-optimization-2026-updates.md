@@ -1,4 +1,4 @@
-# LLM Inference Optimization: 2026 Update
+# LLM Inference Optimization: 2026 Update - Overview
 
 **TL;DR**: Since the initial overview in 2024, the "bottleneck war" has moved from simple KV cache management to architectural revolutions like Multi-Head Latent Attention (MLA) and hardware-native 4-bit floating point (FP4) on Blackwell GPUs.
 
