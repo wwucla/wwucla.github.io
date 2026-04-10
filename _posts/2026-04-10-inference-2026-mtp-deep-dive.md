@@ -10,17 +10,16 @@ In 2023, speculative decoding was about "The Big Model and its Small Friend." By
 ## 1. The Foundation: Standard Speculative Decoding & The Memory Wall
 To understand why MTP is a game-changer, we must first look at why standard autoregressive decoding is slow. LLM inference is traditionally **memory-bandwidth bound**: the GPU spends 99% of its time moving weights from VRAM to compute cores and only 1% doing math.
 
-### The "Mini-Prefill" Analog
-Speculative decoding breaks this "Memory Wall" by changing how we use the GPU. Instead of one trip for one token, we perform a **mini-prefill**:
-* **The Draft:** A fast mechanism (like a small model) guesses $K$ tokens.
-* **The Parallel Validation:** The large model takes all $K$ tokens at once. Because Transformers are naturally parallel, the GPU can verify all $K$ tokens in a single forward pass—essentially the same "time-price" as loading the weights for one token.
-* **The Result:** If the draft is correct, you get $K$ tokens for the price of one "memory-loading" trip.
+### The Paradox: Why is "More Work" Faster?
+It seems counterintuitive that doing more computational work—running a large model on a draft of $K$ tokens—is faster than running it on just one. The answer lies in the **Arithmetic Intensity** of the GPU. Because loading the model weights from memory is the primary bottleneck, the "time-cost" of a forward pass is nearly identical whether you process 1 token or 20 tokens. 
 
-### Rejection Sampling: The "Fact-Checker"
-Validation uses **Rejection Sampling** to ensure the output remains mathematically identical to the large model's own distribution:
-1. The target model computes the probability $P_{target}(x_i)$ for each drafted token.
-2. A token is accepted with probability $\min(1, \frac{P_{target}(x_i)}{P_{draft}(x_i)})$.
-3. If a token is rejected, the chain breaks. The target model then provides a "bonus token" from its own distribution to ensure no compute is wasted.
+By verifying $K$ tokens in parallel, we aren't adding more time; we are simply utilizing the idle compute cores that were already waiting for the weights to arrive.
+
+### The "Mini-Prefill" Analog
+Speculative decoding utilizes this hardware reality to perform a **mini-prefill**:
+* **The Draft:** A fast mechanism (like a small model) guesses $K$ tokens.
+* **The Parallel Validation:** The large model takes all $K$ tokens at once. It performs the verification in a single forward pass—essentially getting $K$ tokens for the price of one "memory-loading" trip.
+* **The Result:** We trade "cheap" compute (which the GPU has in abundance) to save "expensive" memory bandwidth (which is the system's limit).
 
 ---
 
@@ -38,31 +37,27 @@ MTP solves the "Alignment Problem." In early implementations, the draft model of
         * **MTP Head 2:** Takes the output of Head 1 to predict $t+3$.
     3.  **One-Shot Validation:** The main model validates $t+2$ and $t+3$ in a parallel pass.
 
-Because the MTP heads share the same "brain" as the main head, the **acceptance rate** typically jumps from 50% to over 85%.
-
 ---
 
-## 3. The Two-Stage Training of MTP-D
-The 2026 standard for high-performance models follows a rigorous two-stage training process to ensure the "sidecar" heads are perfectly in sync with the main engine.
+## 3. Beyond Accuracy: Why MTP-D Wins
+While standard MTP is a step forward, **MTP-D (Self-Distilled MTP)** is the true game-changer of 2026. 
 
-### Stage 1: Joint MTP Pre-training
-During the initial training phase, the model is optimized for both Next-Token Prediction (NTP) and Multi-Token Prediction (MTP). This forces the shared trunk to learn representations that are inherently predictive of future states.
+### Alignment vs. Prediction
+The problem with standard MTP is that it tries to predict the "ground truth" labels of the dataset. However, in inference, we don't care if the MTP head is accurate to the dataset; we only care if it is **accurate to the main model**. If the main model prefers a specific synonym or a unique stylistic quirk, the MTP head must mirror that exactly. 
 
-**The Joint Loss Function:**
+MTP-D shifts the objective from "predicting the next word" to "predicting the main model's mind." This alignment is what pushes acceptance rates from a shaky 60% to a reliable 90%+.
+
+### The Two-Stage Training Process
+
+#### Stage 1: Joint MTP Pre-training
+The model is first optimized for both Next-Token Prediction (NTP) and Multi-Token Prediction (MTP). This forces the shared trunk to learn representations that are inherently predictive of future states.
 $$L_{Joint} = L_{NTP}(t+1) + \lambda \sum_{i=1}^{K} L_{CE}(P_{head\_i}, \text{label}_{t+i+1})$$
-* **Goal:** Learn the language and long-range dependencies.
-* **Result:** A smart model with "future-guessing" capabilities that are roughly accurate to the dataset.
 
-### Stage 2: MTP-D (Self-Distillation)
-Once the main model (the Trunk) is stable, we move to a dedicated **Self-Distillation** step. In this phase, the Trunk is typically **frozen** (Stop-Gradient), and we optimize only the MTP heads to act as faithful students of the main model's internal probability distribution.
-
-**The Distillation Loss Function:**
-For each MTP head $i$, we optimize:
+#### Stage 2: MTP-D (Self-Distillation)
+Once the main model (the Trunk) is stable, we move to a dedicated **Self-Distillation** step. The Trunk is typically **frozen** (Stop-Gradient), and we optimize only the MTP heads to act as faithful students of the main model's logits.
 $$L_{MTP-D}^{(i)} = L_{CE}(P_{head\_i}, \text{label}) + \beta \cdot D_{KL}(sg(P_{target}) \parallel P_{head\_i})$$
 
-* **$sg(P_{target})$:** The "Stop-Gradient" ensures the main model's reasoning logic remains untouched while it serves as the ground-truth teacher.
-* **$D_{KL}$:** The Kullback-Leibler Divergence forces the head's logits to match the main model's soft targets. 
-* **Why this matters:** This stage is purely about **inference alignment**. Even if the main model is making a non-obvious choice, the MTP-D head learns to anticipate *that specific choice*, maximizing the acceptance rate during the speculative verification pass.
+* **The Soft Target:** The Kullback-Leibler ($D_{KL}$) term ensures the head’s probability distribution matches the main model's "beliefs." Even if the main model makes a non-obvious choice, the MTP-D head anticipates it, ensuring the speculative chain doesn't break.
 
 ---
 
