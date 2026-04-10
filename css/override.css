@@ -1,47 +1,79 @@
+/* --- Global Layout Overrides --- */
+
+/**
+ * Widens the document by 20% 
+ * (Standard Jekyll/Minima is 800px; 800 * 1.2 = 960px)
+ */
+.wrapper, .site-content, .container {
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* --- MathJax Compatibility --- */
+
+/**
+ * Ensures long equations are scrollable on mobile 
+ * and centered properly on desktop.
+ */
+.mjx-chtml, .MathJax_Display, mjx-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  margin: 1em 0 !important;
+}
+
+/* --- Original Styles & Improvements --- */
+
 hr {
   margin-top: 30px;
   margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee; /* Added subtle visual separation */
 }
 
 /* Post navigation links */
 .post_navi {
   display: flex;
+  justify-content: space-between;
+  margin-top: 2em;
 }
 
 .post_navi-label {
   font-size: 0.8em;
-  opacity: 0.5;
+  opacity: 0.6; /* Slightly higher contrast for readability */
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .post_navi .post_navi-item {
-  padding: 0 2.2em;
-  width: 50%;
+  padding: 0 1.5em; /* Adjusted padding for the wider layout */
+  width: 48%;       /* Prevents overlap on smaller screens */
   position: relative;
   color: inherit !important;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
 }
 
-.post_navi .nav_prev {
-  text-align: left;
+.post_navi .post_navi-item:hover {
+  opacity: 0.7;
 }
 
-.post_navi .nav_next {
-  text-align: right;
-}
+.post_navi .nav_prev { text-align: left; }
+.post_navi .nav_next { text-align: right; }
 
-.post_navi .nav_prev .post_navi-arrow {
-  left: 0;
-}
-
-.post_navi .nav_next .post_navi-arrow {
-  right: 0;
-}
+.post_navi .nav_prev .post_navi-arrow { left: 0; }
+.post_navi .nav_next .post_navi-arrow { right: 0; }
 
 .post_navi .post_navi-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 2.5em;
-  opacity: 0.3;
+  font-size: 2em;
+  opacity: 0.2;
+  pointer-events: none;
 }
 
 /* Enable smooth scrolling */
@@ -51,22 +83,38 @@ hr {
   }
 }
 
-/* Style the button */
+/* Back to Top Button */
 .top-link {
   transition:       all .25s ease-in-out;
   position:         fixed;
-  bottom:           0;
-  right:            0;
+  bottom:           2em; /* Moved up slightly */
+  right:            2em;
   display:          inline-flex;
   color:            #000000;
-
   cursor:           pointer;
   align-items:      center;
   justify-content:  center;
-  margin:           0 2em 2em 0;
   border-radius:    50%;
-  padding:          .25em;
-  width:            1em;
-  height:           1em;
+  padding:          .5em; /* Increased touch target */
+  width:            2em;  /* Fixed scale */
+  height:           2em;
   background-color: #F8F8F8;
+  box-shadow:       0 2px 5px rgba(0,0,0,0.1); /* Added depth */
+  z-index:          100;
+}
+
+.top-link:hover {
+  background-color: #eee;
+  transform: translateY(-3px);
+}
+
+/* Responsive fix for Mobile */
+@media (max-width: 600px) {
+  .post_navi {
+    flex-direction: column;
+  }
+  .post_navi .post_navi-item {
+    width: 100%;
+    padding: 1em 0;
+  }
 }
