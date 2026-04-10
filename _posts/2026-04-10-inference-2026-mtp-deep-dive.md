@@ -16,35 +16,29 @@ It seems counterintuitive that doing more computational work—running a large m
 By verifying $K$ tokens in parallel, we aren't adding more time; we are simply utilizing the idle compute cores that were already waiting for the weights to arrive.
 
 ### The "Mini-Prefill" Analog
-Speculative decoding utilizes this hardware reality to perform a **mini-prefill**:
+Speculative decoding utilizes this hardware reality to perform a **mini-prefill**. This technique, pioneered in early works like those by Leviathan et al. [^ref-spec-decoding] and Xia et al. [^ref-xia-specdec], effectively trades idle compute for a reduction in memory loading cycles:
 * **The Draft:** A fast mechanism (like a small model) guesses $K$ tokens.
 * **The Parallel Validation:** The large model takes all $K$ tokens at once. It performs the verification in a single forward pass—essentially getting $K$ tokens for the price of one "memory-loading" trip.
 
 <p align="center">
-  <img src="/images/inference-2026-mtp/speculative_decoding_traditional.jpg" width="800">
+  <img src="/images/inference-2026-mtp/speculative_decoding_traditional.png" width="400">
   <br />
-  <em>Figure 1: Traditional Speculative Decoding with separate Draft and Target models</em>
+  <em>Figure 1: Traditional Speculative Decoding architecture (Draft-Target paradigm)</em>
 </p>
-
-### Rejection Sampling: The "Fact-Checker"
-Validation uses **Rejection Sampling** to ensure the output remains mathematically identical to the large model's own distribution:
-1. The target model computes the probability $P_{target}(x_i)$ for each drafted token.
-2. A token is accepted with probability $\min(1, \frac{P_{target}(x_i)}{P_{draft}(x_i)})$.
-3. If a token is rejected, the chain breaks. The target model then provides a "bonus token" from its own distribution to ensure no compute is wasted.
 
 ---
 
 ## 2. Multi-Token Prediction (MTP): The Sidecar Architecture
-MTP solves the "Alignment Problem." In early implementations, the draft model often "hallucinated" a different path than the target model because they were different architectures. MTP solves this by using a **Shared Trunk**.
+MTP solves the "Alignment Problem." In early implementations, the draft model often "hallucinated" a different path than the target model because they were different architectures. MTP solves this by using a **Shared Trunk** approach popularized by the DeepSeek-V3 [^ref-deepseek-v3] and Qwen3 [^ref-qwen3] series.
 
 ### The Anatomy of an MTP Model
 * **The Shared Trunk:** All layers of the main model (the "brain") are used to process the context.
-* **MTP Modules:** These are lightweight Transformer layers attached *after* the final layer of the trunk.
+* **MTP Modules:** These are lightweight Transformer layers attached *after* the final layer of the trunk, typically predicting 2-4 tokens ahead as detailed in Gloeckle et al. [^ref-gloeckle-mtp].
 
 <p align="center">
-  <img src="/images/inference-2026-mtp/mtp_architecture.jpg" width="800">
+  <img src="/images/inference-2026-mtp/mtp_architecture.png" width="600">
   <br />
-  <em>Figure 2: MTP Shared Trunk Architecture with auxiliary prediction heads</em>
+  <em>Figure 2: MTP Shared Trunk Architecture with integrated prediction heads</em>
 </p>
 
 ### The Inference Flow (Same for MTP & MTP-D)
@@ -64,12 +58,12 @@ While the inference path is shared, the **Training Path** is where MTP-D (Self-D
 ### Alignment vs. Prediction
 The problem with standard MTP is that it tries to predict the "ground truth" labels of the dataset. However, in inference, we don't care if the MTP head is accurate to the dataset; we only care if it is **accurate to the main model**. 
 
-MTP-D shifts the objective from "predicting the next word" to "predicting the main model's mind." This behavioral alignment is what pushes acceptance rates from a shaky 60% to a reliable 90%+.
+MTP-D shifts the objective from "predicting the next word" to "predicting the main model's mind." This behavioral alignment, explored in recent research [^ref-mtp-distill], is what pushes acceptance rates from a shaky 60% to a reliable 90%+.
 
 ### The Two-Stage Training Process
 
 #### Stage 1: Joint MTP Pre-training
-The model is first optimized for both Next-Token Prediction (NTP) and Multi-Token Prediction (MTP).
+The model is first optimized for both Next-Token Prediction (NTP) and Multi-Token Prediction (MTP). This stage is often included in modern pre-training surveys [^ref-survey25] as a way to improve representation learning.
 $$L_{Joint} = L_{NTP}(t+1) + \lambda \sum_{i=1}^{K} L_{CE}(P_{head\_i}, \text{label}_{t+i+1})$$
 
 #### Stage 2: MTP-D (Self-Distillation)
@@ -95,3 +89,12 @@ The choice of $K$ (look-ahead window) balances GPU utilization against error com
 We have reached the end of the "Dual Model" era. Today’s state-of-the-art inference engines don't look for a "fast small model" to pair with a "smart big model." Instead, they utilize **MTP-D** to build a single, cohesive engine that naturally thinks 3-4 steps ahead. By aligning the "future-thinking" heads with the main model's internal logic during the training path, we can effectively double throughput in the inference path without sacrificing accuracy.
 
 ---
+
+## References
+[^ref-spec-decoding]: Leviathan, Yaniv, et al. "[Fast inference from transformers via speculative decoding](https://arxiv.org/abs/2211.17192)." (2023).
+[^ref-xia-specdec]: Xia, Heming, et al. "[Speculative Decoding: Exploiting Speculative Execution for Accelerating Seq2seq Generation](https://arxiv.org/abs/2203.16487)." (2022).
+[^ref-deepseek-v3]: DeepSeek-AI. "[DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437)." (2025).
+[^ref-gloeckle-mtp]: Gloeckle, Fabian, et al. "[Better & Faster Large Language Models via Multi-token Prediction](https://arxiv.org/abs/2404.19737)." (2024).
+[^ref-mtp-distill]: Zhao et al. "[Self-Distilled Multi-Token Prediction for Efficient Inference](https://arxiv.org/abs/2603.01245)." (2026).
+[^ref-survey25]: Xu, Jiawei, et al. "[A Comprehensive Survey on Large Language Models: From Pre-training to Autonomous Agents](https://www.researchgate.net/publication/399059225_A_Comprehensive_Survey_on_Large_Language_Models_From_Pre-training_to_Autonomous_Agents)." (2025).
+[^ref-qwen3]: Alibaba Group. "[Alibaba Open-Sources Qwen3.5 with Native MTP Heads](https://www.alibabagroup.com/document-1960233590314762240)." (2026).
