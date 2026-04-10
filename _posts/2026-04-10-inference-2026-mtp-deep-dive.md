@@ -1,4 +1,4 @@
-# LLM Inference Optimization: 2026 Update - MTP & MTP-D Deep Dive
+# LLM Inference Optimization: 2026 Update - MTP, MTP-D Deep Dive
 
 **Estimated Reading Time:** 8 minutes
 
