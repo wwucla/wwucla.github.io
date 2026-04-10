@@ -31,7 +31,7 @@ The parameter $\alpha$ determines how much the student trusts the teacher vs. th
 ### Choosing $T$ (Temperature)
 Temperature controls the entropy of the soft targets. 
 
-* **Hinton's Original Recommendation:** In the seminal 2015 paper, Hinton et al. found that using a temperature in the range of **$1$ to $5$** worked best for most tasks, specifically noting that when a student is much smaller than the teacher, intermediate temperatures are often optimal [^ref-kd-hinton-2015].
+* **Hinton's Original Recommendation:** In the seminal 2015 paper, Hinton et al. found that using a temperature in the range of **1 to 5** worked best for most tasks, specifically noting that when a student is much smaller than the teacher, intermediate temperatures are often optimal [^ref-kd-hinton-2015].
 * **Small $T$ ($1$ to $2$):** Keeps the distribution "peaky." This is recommended when the student has enough capacity to match the teacher's exact confidence levels [^ref-kd-mirzadeh-2020].
 * **Large $T$ ($3$ to $10$):** Softens the distribution. This is essential when there is a significant **capacity gap** between teacher and student [^ref-kd-hinton-2015]. It prevents the student from being "overwhelmed" by the teacher's extreme certainty, focusing instead on the relative similarities between classes.
 * **Dynamic $T$:** Newer research suggests starting with a high $T$ to provide a smooth signal and decaying it as training progresses to allow the student to learn more precise boundaries [^ref-kd-li-2023].
@@ -108,10 +108,10 @@ By multiplying by $25$ ($T^2$), we bring the teacher's influence back to a magni
 
 ## References
 
-[^ref-kd-hinton-2015]: Hinton, G., Vinyals, O., & Dean, J. (2015). **Distilling the Knowledge in a Neural Network**. [arXiv:1503.02531](https://arxiv.org/abs/1503.02531).
-[^ref-kd-deepseek-2024]: DeepSeek-V3 Technical Report (2024). **Multi-Token Prediction Distillation (MTP-D) applications**. [Link](https://github.com/deepseek-ai/DeepSeek-V3).
-[^ref-kd-li-2023]: Li, Z., et al. (2023). **Curriculum Temperature for Knowledge Distillation**. International Conference on Machine Learning (ICML).
-[^ref-kd-mirzadeh-2020]: Mirzadeh, S. I., et al. (2020). **Improved Knowledge Distillation via Teacher Assistant**. [arXiv:1902.03393](https://arxiv.org/abs/1902.03393).
-[^ref-kd-touvron-2023]: Touvron, H., et al. (2023). **Llama 2: Open Foundation and Fine-Tuned Chat Models**. [arXiv:2307.09288](https://arxiv.org/abs/2307.09288).
-[^ref-kd-schulman-2017]: Schulman, J., et al. (2017). **Proximal Policy Optimization Algorithms**. [arXiv:1707.06347](https://arxiv.org/abs/1707.06347).
-[^ref-kd-leviathan-2023]: Leviathan, Y., et al. (2023). **Fast Inference from Transformers via Speculative Decoding**. [arXiv:2211.17192](https://arxiv.org/abs/2211.17192).
+[^ref-kd-hinton-2015]: Hinton, G., Vinyals, O., & Dean, J. (2015). [**Distilling the Knowledge in a Neural Network**](https://arxiv.org/abs/1503.02531). arXiv:1503.02531.
+[^ref-kd-deepseek-2024]: [**DeepSeek-V3 Technical Report**](https://github.com/deepseek-ai/DeepSeek-V3) (2024). Multi-Token Prediction Distillation (MTP-D) applications.
+[^ref-kd-li-2023]: Li, Z., et al. (2023). [**Curriculum Temperature for Knowledge Distillation**](https://openreview.net/forum?id=7S7mY8Wf7w). International Conference on Machine Learning (ICML).
+[^ref-kd-mirzadeh-2020]: Mirzadeh, S. I., et al. (2020). [**Improved Knowledge Distillation via Teacher Assistant**](https://arxiv.org/abs/1902.03393). arXiv:1902.03393.
+[^ref-kd-touvron-2023]: Touvron, H., et al. (2023). [**Llama 2: Open Foundation and Fine-Tuned Chat Models**](https://arxiv.org/abs/2307.09288). arXiv:2307.09288.
+[^ref-kd-schulman-2017]: Schulman, J., et al. (2017). [**Proximal Policy Optimization Algorithms**](https://arxiv.org/abs/1707.06347). arXiv:1707.06347.
+[^ref-kd-leviathan-2023]: Leviathan, Y., et al. (2023). [**Fast Inference from Transformers via Speculative Decoding**](https://arxiv.org/abs/2211.17192). arXiv:2211.17192.
