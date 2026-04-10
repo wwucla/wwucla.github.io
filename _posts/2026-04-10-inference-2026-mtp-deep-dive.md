@@ -64,10 +64,12 @@ MTP-D shifts the objective from "predicting the next word" to "predicting the ma
 
 #### Stage 1: Joint MTP Pre-training
 The model is first optimized for both Next-Token Prediction (NTP) and Multi-Token Prediction (MTP). This stage is often included in modern pre-training surveys [^ref-survey25] as a way to improve representation learning.
+
 $$L_{Joint} = L_{NTP}(t+1) + \lambda \sum_{i=1}^{K} L_{CE}(P_{head\_i}, \text{label}_{t+i+1})$$
 
 #### Stage 2: MTP-D (Self-Distillation)
 Once the trunk is stable, we move to a dedicated **Self-Distillation** step. The Trunk is typically **frozen** (Stop-Gradient), and we optimize only the MTP heads to mimic the Trunk's internal logits.
+
 $$L_{MTP-D}^{(i)} = L_{CE}(P_{head\_i}, \text{label}) + \beta \cdot D_{KL}(sg(P_{target}) \parallel P_{head\_i})$$
 
 * **The Soft Target:** The $D_{KL}$ term ensures the head’s probability distribution matches the main model's "beliefs." Even if the main model makes a non-obvious choice, the MTP-D head anticipates it, ensuring the speculative chain doesn't break.
