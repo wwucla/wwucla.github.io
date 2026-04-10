@@ -161,7 +161,7 @@ Denoting the logits before the final softmax layer as **$z_t$** and **$z_s$** fo
 
 <!-- $$L_\text{Distillation} = L_\text{CE}(\text{Softmax}(z_t, T), \text{Softmax}(z_s, T)) + \lambda L_\text{CE}(\text{Softmax}(z_s, 1), y)$$ -->
 
-* `L_KD = L(Softmax(z_t, T), Softmax(z_s, T)) + \lambda * L(Softmax(z_s, 1), y)`
+$$L_{KD} = L(Softmax(z_t, T), Softmax(z_s, T)) + \lambda * L(Softmax(z_s, 1), y)$$
 
 
 
