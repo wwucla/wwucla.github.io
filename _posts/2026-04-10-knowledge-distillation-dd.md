@@ -3,9 +3,9 @@
 **Estimated Reading Time: 12 minutes**
 
 ## Preface
-I first encountered Hinton’s Knowledge Distillation paper back in 2015 during the final two weeks of my internship at **IBM Watson Research**. At the time, the concept of a student model learning from "dark knowledge" via hard and soft targets was intellectually fascinating. I remember asking my supervisor if we should try to implement it for our project. His response was classic pragmatism: he felt that playing with the temperature would require too much tuning and wouldn't be a good use of time with only two weeks left. 
+I first encountered Hinton’s Knowledge Distillation paper back in 2015 during the final two weeks of my internship at **IBM Watson Research**. At the time, the concept of a student model learning from "dark knowledge" via hard and soft targets was intellectually fascinating. I remember asking my supervisor if we should try to implement it for our project. His response was a masterclass in pragmatism: he felt that "opening the box" of the Caffe framework [^ref-kd-jia-2014] to manually adjust the temperature logic and then tuning the results would be too much of an architectural lift for a project with only fourteen days left on the clock.
 
-Looking back now—especially with the rise of massive Large Language Models (LLMs) and specialized techniques like **Multi-Token Prediction Distillation (MTP-D)**—I realize how wrong that was. Temperature isn't just a hyperparameter to "play with"; it is arguably the most important concept in the KD paper. It is the dial that controls the flow of structural information between models. This article is a deep dive into the math I wish I’d fully unpacked at Watson a decade ago.
+Looking back now—especially with the rise of massive Large Language Models (LLMs) and specialized techniques like **Multi-Token Prediction Distillation (MTP-D)**—I realize how consequential that decision was. Temperature isn't just a hyperparameter to "play with"; it is arguably the most vital concept in the KD paper. It is the dial that controls the flow of structural information between models. This article is a deep dive into the math I wish I’d fully unpacked at Watson a decade ago.
 
 ---
 
@@ -109,6 +109,7 @@ By multiplying by $25$ ($T^2$), we bring the teacher's influence back to a magni
 ## References
 
 [^ref-kd-hinton-2015]: Hinton, G., Vinyals, O., & Dean, J. (2015). [**Distilling the Knowledge in a Neural Network**](https://arxiv.org/abs/1503.02531). arXiv:1503.02531.
+[^ref-kd-jia-2014]: Jia, Y., et al. (2014). [**Caffe: Convolutional Architecture for Fast Feature Embedding**](https://arxiv.org/abs/1408.5093). arXiv:1408.5093.
 [^ref-kd-deepseek-2024]: [**DeepSeek-V3 Technical Report**](https://github.com/deepseek-ai/DeepSeek-V3) (2024). Multi-Token Prediction Distillation (MTP-D) applications.
 [^ref-kd-li-2023]: Li, Z., et al. (2023). [**Curriculum Temperature for Knowledge Distillation**](https://openreview.net/forum?id=7S7mY8Wf7w). International Conference on Machine Learning (ICML).
 [^ref-kd-mirzadeh-2020]: Mirzadeh, S. I., et al. (2020). [**Improved Knowledge Distillation via Teacher Assistant**](https://arxiv.org/abs/1902.03393). arXiv:1902.03393.
