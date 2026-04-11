@@ -1,4 +1,4 @@
-# The Mechanics of Knowledge Distillation - Revisit
+# Knowledge Distillation - Revisit
 
 **Estimated Reading Time: 12 minutes**
 
