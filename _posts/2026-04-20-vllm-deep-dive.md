@@ -29,28 +29,28 @@ By decoupling the logical view from physical memory, vLLM transforms both the ra
 * **Near-Optimal Memory Usage:** Research indicates that traditional systems typically waste **60% to 80%** of GPU memory due to static over-reservation [^ref-vllm-2023]. vLLM reduces this waste to under **4%**, effectively doubling or tripling the number of concurrent requests a single GPU can handle.
 * **Continuous Batching:** Traditional batching waits for the entire batch to finish. vLLM uses **Iteration-level Scheduling**, checking for completed sequences after *every single token*. Completed requests are immediately evicted, and new ones are inserted, ensuring the GPU is never idle.
 
-### Operational Capabilities: Sampling and Caching
+### Operational Parallelism and Memory Sharing
 Beyond raw speed, PagedAttention enables complex sharing patterns [^ref-vllm-blog] previously too memory-intensive for production use.
 
-* **Parallel Sampling (Intra-Request):** When one request asks for multiple outputs (e.g., `n=5`), vLLM stores the prompt's KV cache exactly once. All generated sequences point back to these same physical blocks, branching only when they begin to generate unique tokens.
+* **Intra-Request Parallelism (Parallel Sampling):** When one request asks for multiple outputs (e.g., `n=5`), vLLM stores the prompt's KV cache exactly once. All generated sequences point back to these same physical blocks, branching only when they begin to generate unique tokens.
 <p align="center">
   <img src="/images/inference-2026-vllm/parallel_sampling.gif" width="500">
   <br />
   <em>Figure 2: Parallel sampling in action. Multiple outputs share physical memory for the initial prompt.</em>
 </p>
 
-* **Automatic Prefix Caching (Inter-Request):** **Prefix Caching** allows Request B to reuse memory from Request A. In multi-turn conversations or agentic workflows, different requests often share a common system prompt. vLLM caches these blocks across requests, significantly reducing "Time to First Token" (TTFT).
+* **Inter-Request Sharing (Automatic Prefix Caching):** **Prefix Caching** allows Request B to reuse memory from Request A. In multi-turn conversations or agentic workflows, different requests often share a common system prompt. vLLM caches these blocks across requests, significantly reducing "Time to First Token" (TTFT).
 <p align="center">
   <img src="/images/inference-2026-vllm/memory_sharing.gif" width="700">
   <br />
   <em>Figure 3: Shared Prefix Caching across independent requests.</em>
 </p>
 
-## 3. Hardware and Model Nuances: The "Block" Reality
-The default block size in vLLM is **16 tokens**, a choice driven by hardware constraints.
+## 3. Why Block Size Matters: Hardware and Model Nuances
+The default block size in vLLM is **16 tokens**, a choice driven by a trade-off between memory waste and hardware efficiency.
 
-### GPU Warp Alignment & Throughput
-* **The 16-Token Standard:** A **Warp** consists of 32 threads. In vLLM’s kernels, these threads fetch 16 Key and 16 Value vectors in a single coalesced memory transaction, fully saturating GPU bandwidth.
+### Hardware Constraints
+* **GPU Warp Alignment & Throughput:** A **Warp** consists of 32 threads. In vLLM’s kernels, these threads fetch 16 Key and 16 Value vectors in a single coalesced memory transaction, fully saturating GPU bandwidth.
 * **The TensorRT-LLM Divergence:** Enterprise engines like TensorRT-LLM often default to **64 or 128-token blocks** [^ref-trtllm]. Larger blocks maximize throughput on H100s by reducing "indirection overhead" (fewer block table lookups) at the cost of higher fragmentation.
 
 ### Model Architecture and Memory Variance
