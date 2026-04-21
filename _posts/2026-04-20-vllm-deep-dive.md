@@ -14,7 +14,7 @@ In the world of Large Language Model (LLM) inference, the primary bottleneck isn
 ## 1. The Core Innovation: PagedAttention
 Traditional inference engines allocate KV cache in large, contiguous blocks. Because we don't know the output length in advance, systems "over-reserve" space, leading to **Internal Fragmentation** (wasted space within a sequence) and **External Fragmentation**.
 
-**PagedAttention** solves this by partitioning the KV cache into small, fixed-size **Physical Blocks**. A **Block Table** maps these logical sequences to physical locations, allowing memory to be allocated on-demand. The following animation from the official vLLM blog illustrates this mapping process.
+**PagedAttention** solves this by partitioning the KV cache into small, fixed-size **Physical Blocks**. A **Block Table** maps these logical sequences to physical locations, allowing memory to be allocated on-demand. The following animation [^ref-vllm-blog] illustrates this mapping process.
 
 <p align="center">
   <img src="/images/inference-2026-vllm/animation.gif" width="700">
@@ -27,10 +27,10 @@ By decoupling the logical view from physical memory, vLLM transforms both the ra
 
 ### Core Performance Gains: Memory and Throughput
 * **Near-Optimal Memory Usage:** Research indicates that traditional systems typically waste **60% to 80%** of GPU memory due to static over-reservation [^ref-vllm-2023]. vLLM reduces this waste to under **4%**, effectively doubling or tripling the number of concurrent requests a single GPU can handle.
-* **Massively Higher Throughput:** By utilizing **Continuous Batching** alongside PagedAttention, vLLM achieves up to **24x higher throughput** than baseline implementations. It eliminates "bubbles" in the pipeline by inserting new requests into a running batch as soon as any single sequence finishes, ensuring the GPU is never idle.
+* **Massively Higher Throughput:** By utilizing **Continuous Batching** alongside PagedAttention, vLLM achieves up to **24x higher throughput** than baseline implementations. It eliminates "bubbles" in the pipeline by inserting new requests into a running batch as soon as any single sequence finishes.
 
 ### Operational Capabilities: Sampling and Caching
-Beyond raw speed, PagedAttention enables complex sharing patterns that were previously too memory-intensive for production use. These visuals from the vLLM blog highlight the two primary mechanisms.
+Beyond raw speed, PagedAttention enables complex sharing patterns [^ref-vllm-blog] that were previously too memory-intensive for production use.
 
 * **Parallel Sampling (Intra-Request):** When one request asks for multiple outputs (e.g., `n=5`), vLLM stores the prompt's KV cache exactly once. All generated sequences point back to these same physical blocks, branching only when they begin to generate unique tokens.
 <p align="center">
