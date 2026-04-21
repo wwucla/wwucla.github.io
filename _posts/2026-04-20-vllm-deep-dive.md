@@ -4,10 +4,10 @@ title: "vLLM - Revisit"
 date: 2026-04-20
 categories: [AI, Infrastructure]
 tags: [LLM, Inference, Optimization]
-description: A technical summary of PagedAttention and memory management in vLLM.
+description: A technical summary of PagedAttention, hardware nuances, and continuous batching in vLLM.
 ---
 
-*Estimated read time: 10 minutes*
+*Estimated read time: 12 minutes*
 
 In the world of Large Language Model (LLM) inference, the primary bottleneck isn't just compute—it's memory management. Specifically, the management of the **Key-Value (KV) Cache**. vLLM has emerged as the industry standard by borrowing a classic concept from Operating Systems: **Virtual Memory** [^ref-vllm-2023].
 
@@ -27,10 +27,10 @@ By decoupling the logical view from physical memory, vLLM transforms both the ra
 
 ### Core Performance Gains: Memory and Throughput
 * **Near-Optimal Memory Usage:** Research indicates that traditional systems typically waste **60% to 80%** of GPU memory due to static over-reservation [^ref-vllm-2023]. vLLM reduces this waste to under **4%**, effectively doubling or tripling the number of concurrent requests a single GPU can handle.
-* **Massively Higher Throughput:** By utilizing **Continuous Batching** alongside PagedAttention, vLLM achieves up to **24x higher throughput** than baseline implementations. It eliminates "bubbles" in the pipeline by inserting new requests into a running batch as soon as any single sequence finishes.
+* **Continuous Batching:** Traditional batching waits for the entire batch to finish. vLLM uses **Iteration-level Scheduling**, checking for completed sequences after *every single token*. Completed requests are immediately evicted, and new ones are inserted, ensuring the GPU is never idle.
 
 ### Operational Capabilities: Sampling and Caching
-Beyond raw speed, PagedAttention enables complex sharing patterns [^ref-vllm-blog] that were previously too memory-intensive for production use.
+Beyond raw speed, PagedAttention enables complex sharing patterns [^ref-vllm-blog] previously too memory-intensive for production use.
 
 * **Parallel Sampling (Intra-Request):** When one request asks for multiple outputs (e.g., `n=5`), vLLM stores the prompt's KV cache exactly once. All generated sequences point back to these same physical blocks, branching only when they begin to generate unique tokens.
 <p align="center">
@@ -39,35 +39,43 @@ Beyond raw speed, PagedAttention enables complex sharing patterns [^ref-vllm-blo
   <em>Figure 2: Parallel sampling in action. Multiple outputs share physical memory for the initial prompt.</em>
 </p>
 
-* **Automatic Prefix Caching (Inter-Request):** **Prefix Caching** allows Request B to reuse memory from Request A. In multi-turn conversations or agentic workflows, different requests often share a common system prompt. vLLM caches these blocks across requests, significantly reducing "Time to First Token" (TTFT) and total VRAM usage.
+* **Automatic Prefix Caching (Inter-Request):** **Prefix Caching** allows Request B to reuse memory from Request A. In multi-turn conversations or agentic workflows, different requests often share a common system prompt. vLLM caches these blocks across requests, significantly reducing "Time to First Token" (TTFT).
 <p align="center">
   <img src="/images/inference-2026-vllm/memory_sharing.gif" width="700">
   <br />
   <em>Figure 3: Shared Prefix Caching across independent requests.</em>
 </p>
 
-## 3. Why Block Size Matters: Hardware and Model Nuances
-The default block size in vLLM is **16 tokens**, a choice driven by a trade-off between memory waste and hardware efficiency.
+## 3. Hardware and Model Nuances: The "Block" Reality
+The default block size in vLLM is **16 tokens**, a choice driven by hardware constraints.
 
-### Hardware Constraints
-* **GPU Warp Alignment:** A **Warp** consists of 32 threads. In vLLM’s kernels, these threads fetch 16 Key and 16 Value vectors in a single coalesced memory transaction, fully saturating GPU bandwidth.
+### GPU Warp Alignment & Throughput
+* **The 16-Token Standard:** A **Warp** consists of 32 threads. In vLLM’s kernels, these threads fetch 16 Key and 16 Value vectors in a single coalesced memory transaction, fully saturating GPU bandwidth.
 * **The TensorRT-LLM Divergence:** Enterprise engines like TensorRT-LLM often default to **64 or 128-token blocks** [^ref-trtllm]. Larger blocks maximize throughput on H100s by reducing "indirection overhead" (fewer block table lookups) at the cost of higher fragmentation.
 
 ### Model Architecture and Memory Variance
-It is vital to note that 16 tokens do not represent a fixed byte size. Since a block stores KV vectors for every layer, the "heaviness" of a block scales with the model's dimensions:
-* **Llama 3 8B:** A 16-token block consumes **~1.0 MB** [^ref-llama3-memory].
-* **Llama 3 70B:** The same 16-token block consumes **~5.2 MB** [^ref-llama3-memory].
+The "heaviness" of a block scales with the model's dimensions. For example, at FP16 precision [^ref-llama3-memory]:
+* **Llama 3 8B:** A 16-token block consumes **~1.0 MB**.
+* **Llama 3 70B:** A 16-token block consumes **~5.2 MB**.
 
-Furthermore, modern architectures like **DeepSeek-V3** use **Multi-Head Latent Attention (MLA)**, which compresses KV vectors. This means 16 tokens can consume significantly less memory than standard transformers, even at larger model scales.
+Modern architectures like **DeepSeek-V3** use **Multi-Head Latent Attention (MLA)** to compress KV vectors, meaning 16 tokens can consume significantly less memory even at larger scales.
 
 **Formula for one vLLM block (16 tokens):**
 $$\text{Bytes} = 16 \times \text{Layers} \times n_{KV\_heads} \times d_{head} \times \text{Precision\_Bytes} \times 2$$
 
-## 4. Synergy with Advanced Decoding Strategies
-Block-based management is particularly powerful for modern inference strategies that rely on "guessing" and "branching":
+## 4. Engineering the 'Magic': Production Implementation
+The true production strength of vLLM lies in how it manages the gap between the CPU scheduler and the GPU kernels.
 
-* **Speculative Decoding:** In speculative decoding, a "draft" model predicts tokens that may be rejected by the "target" model. Rejecting tokens becomes a simple metadata operation—unmapping physical blocks—rather than a costly memory re-alignment.
-* **Multi-Token Prediction (MTP):** Architectures that predict multiple future paths create a "tree" of tokens. vLLM’s block-based logic handles this naturally, following the most likely branch while discarding others without fragmentation.
+### I. CUDA Graph Replay
+Launching kernels for every token is expensive. vLLM uses **CUDA Graphs** to "record" and "replay" kernel launches. 
+* **Fixed Shapes:** CUDA Graphs require fixed tensor shapes. vLLM captures graphs for specific batch sizes (e.g., 1, 2, 4, 8, 16...). 
+* **The Padded Batch:** if a batch contains 7 requests, it is padded to 8 for the forward pass. While this creates a "straggler" effect where one long request keeps a batch slot occupied, Iteration-level scheduling ensures we fill other slots as soon as they open.
+
+### II. The "Swapping" Safety Valve
+If VRAM is 100% full and a running request needs a new block, vLLM uses **Swapping**. It preempts the most recent request and moves its KV blocks from GPU VRAM to **CPU RAM**. This prevents Out-of-Memory (OOM) errors at the cost of a significant latency hit.
+
+### III. Synergy with Speculative Decoding
+In speculative decoding, a "draft" model predicts tokens that may be rejected by the "target" model. With PagedAttention, rejecting tokens is a simple metadata operation—unmapping physical blocks—rather than a costly memory re-alignment.
 
 ---
 
