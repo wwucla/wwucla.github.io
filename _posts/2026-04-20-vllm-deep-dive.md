@@ -52,12 +52,24 @@ Parallel sampling occurs when one request asks for multiple outputs (e.g., `n=5`
   <em>Figure 3: Shared Prefix Caching across independent requests.</em>
 </p>
 
-## 4. Why Block Size Matters: The 16-Token Standard
-The default block size in vLLM is **16 tokens**, a choice driven by hardware constraints.
+## 4. Why Block Size Matters: Hardware and Model Nuances
+The default block size in vLLM is **16 tokens**, a choice driven by a trade-off between memory waste and hardware efficiency.
 
+### Hardware Constraints
 * **GPU Warp Alignment:** A **Warp** consists of 32 threads. In vLLM’s kernels, these threads fetch 16 Key and 16 Value vectors in a single coalesced memory transaction, fully saturating GPU bandwidth.
-* **The TensorRT-LLM Divergence:** Enterprise engines like TensorRT-LLM often default to **64 or 128-token blocks** [^ref-trtllm]. While larger blocks maximize throughput on H100s by reducing "indirection overhead" (fewer block table lookups), they increase the fragmentation waste that small blocks help avoid.
-* **Memory Variance:** 16 tokens do not represent a fixed byte size. A block for Llama 3 70B (~5.2 MB) is much "heavier" than one for Llama 3 8B (~1 MB). Sticking to 16 tokens allows for surgical **Copy-on-Write** (CoW) branching regardless of the model's footprint.
+* **The TensorRT-LLM Divergence:** Enterprise engines like TensorRT-LLM often default to **64 or 128-token blocks** [^ref-trtllm]. Larger blocks maximize throughput on H100s by reducing "indirection overhead" (fewer block table lookups) at the cost of higher fragmentation.
+
+### Model Architecture and Memory Variance
+It is vital to note that 16 tokens do not represent a fixed byte size. Since a block stores KV vectors for every layer, the "heaviness" of a block scales with the model's dimensions:
+* **Llama 3 8B:** A 16-token block consumes **~1.0 MB** [^ref-llama3-memory].
+* **Llama 3 70B:** The same 16-token block consumes **~5.2 MB** [^ref-llama3-memory].
+
+Furthermore, modern architectures decouple the KV cache size from the hidden dimension ($d_{model}$), which impacts these calculations:
+* **Grouped-Query Attention (GQA):** Only a fraction of KV heads exist compared to Query heads (e.g., Llama 3 70B has an 8:1 ratio).
+* **Multi-Head Latent Attention (MLA):** Compressed KV vectors (like in DeepSeek-V3) mean 16 tokens consume significantly less memory.
+
+**Formula for one vLLM block (16 tokens):**
+$$\text{Bytes} = 16 \times \text{Layers} \times n_{KV\_heads} \times d_{head} \times \text{Precision\_Bytes} \times 2$$
 
 ## 5. Synergy with Advanced Architectures
 Block-based management is particularly powerful for modern inference strategies:
@@ -68,17 +80,9 @@ In speculative decoding, a "draft" model predicts tokens that may be rejected by
 ### Multi-Token Prediction (MTP)
 Architectures that predict multiple future paths (like Medusa or DeepSeek-V3) create a "tree" of tokens. vLLM’s block-based logic handles this naturally, following the most likely branch while discarding others without fragmentation.
 
-## 6. Memory Calculation Nuances
-In modern models, the KV cache size is often decoupled from the total hidden dimension ($d_{model}$):
-
-* **Grouped-Query Attention (GQA):** Only a fraction of KV heads exist compared to Query heads (e.g., Llama 3 70B has an 8:1 ratio).
-* **Multi-Head Latent Attention (MLA):** Compressed KV vectors (like in DeepSeek-V3) mean 16 tokens consume significantly less memory.
-
-**Formula for one vLLM block (16 tokens):**
-$$\text{Bytes} = 16 \times \text{Layers} \times n_{KV\_heads} \times d_{head} \times \text{Precision\_Bytes} \times 2$$
-
 ---
 
 [^ref-vllm-2023]: Kwon et al., "Efficient Memory Management for Large Language Model Serving with PagedAttention," SOSP 2023. [https://arxiv.org/abs/2309.06180](https://arxiv.org/abs/2309.06180)
 [^ref-vllm-blog]: "vLLM: Easy, Fast, and Cheap LLM Serving with PagedAttention," vLLM Blog. [https://vllm.ai/blog/vllm](https://vllm.ai/blog/vllm)
 [^ref-trtllm]: NVIDIA, "TensorRT-LLM Documentation: KV Cache Management." [https://nvidia.github.io/TensorRT-LLM/latest/features/kvcache.html](https://nvidia.github.io/TensorRT-LLM/latest/features/kvcache.html)
+[^ref-llama3-memory]: "Llama 3 Model Card and Performance Benchmarks," Meta AI Research. [https://github.com/meta-llama/llama3](https://github.com/meta-llama/llama3)
