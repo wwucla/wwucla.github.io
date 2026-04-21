@@ -11,6 +11,14 @@ description: A technical summary of PagedAttention, hardware nuances, and contin
 
 In the world of Large Language Model (LLM) inference, the primary bottleneck isn't just compute—it's memory management. Specifically, the management of the **Key-Value (KV) Cache**. vLLM has emerged as the industry standard by borrowing a classic concept from Operating Systems: **Virtual Memory** [^ref-vllm-2023].
 
+## Table of Contents
+1. [The Core Innovation: PagedAttention](#1-the-core-innovation-pagedattention)
+2. [The Impact: Efficiency, Throughput, and Scaling](#2-the-impact-efficiency-throughput-and-scaling)
+3. [Why Block Size Matters: Hardware and Model Nuances](#3-why-block-size-matters-hardware-and-model-nuances)
+4. [Engineering the 'Magic': Production Implementation](#4-engineering-the-magic-production-implementation)
+
+---
+
 ## 1. The Core Innovation: PagedAttention
 Traditional inference engines allocate KV cache in large, contiguous blocks. Because we don't know the output length in advance, systems "over-reserve" space, leading to **Internal Fragmentation** (wasted space within a sequence) and **External Fragmentation**.
 
