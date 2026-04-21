@@ -17,7 +17,7 @@ Traditional inference engines allocate KV cache in large, contiguous blocks. Bec
 **PagedAttention** solves this by partitioning the KV cache into small, fixed-size **Physical Blocks**. A **Block Table** maps these logical sequences to physical locations, allowing memory to be allocated on-demand. The following animation from the official vLLM blog illustrates this mapping process.
 
 <p align="center">
-  <img src="/images/inference-2026-vllm/animation.gif" width="800">
+  <img src="/images/inference-2026-vllm/animation.gif" width="700">
   <br />
   <em>Figure 1: PagedAttention maps contiguous logical blocks to non-contiguous physical blocks, eliminating external fragmentation.</em>
 </p>
@@ -38,7 +38,7 @@ PagedAttention enables complex decoding patterns that were previously too memory
 Parallel sampling occurs when one request asks for multiple outputs (e.g., `n=5`). vLLM stores the prompt's KV cache exactly once. All generated sequences point back to these same physical blocks, branching only when they begin to generate unique tokens.
 
 <p align="center">
-  <img src="/images/inference-2026-vllm/parallel_sampling.gif" width="800">
+  <img src="/images/inference-2026-vllm/parallel_sampling.gif" width="500">
   <br />
   <em>Figure 2: Parallel sampling in action. Multiple outputs share physical memory for the initial prompt.</em>
 </p>
@@ -47,7 +47,7 @@ Parallel sampling occurs when one request asks for multiple outputs (e.g., `n=5`
 **Prefix Caching** allows Request B to reuse memory from Request A. In multi-turn conversations or agentic workflows, different requests often share a common system prompt. vLLM caches these blocks across requests, significantly reducing "Time to First Token" (TTFT) and total VRAM usage.
 
 <p align="center">
-  <img src="/images/inference-2026-vllm/memory_sharing.gif" width="800">
+  <img src="/images/inference-2026-vllm/memory_sharing.gif" width="700">
   <br />
   <em>Figure 3: Shared Prefix Caching across independent requests.</em>
 </p>
