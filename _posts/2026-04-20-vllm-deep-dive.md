@@ -22,37 +22,31 @@ Traditional inference engines allocate KV cache in large, contiguous blocks. Bec
   <em>Figure 1: PagedAttention maps contiguous logical blocks to non-contiguous physical blocks, eliminating external fragmentation.</em>
 </p>
 
-## 2. Practical Benefits: Efficiency and Throughput
-By decoupling the logical view from physical memory, vLLM provides immediate performance gains for standard serving workloads.
+## 2. The Impact: Efficiency, Throughput, and Scaling
+By decoupling the logical view from physical memory, vLLM transforms both the raw performance of the GPU and the way applications handle complex decoding.
 
-### I. Near-Optimal Memory Usage
-Research has shown that traditional systems typically waste **60% to 80%** of GPU memory due to over-reservation [^ref-vllm-2023]. vLLM reduces this waste to under **4%**, allowing for significantly larger batch sizes on the same hardware.
+### Core Performance Gains: Memory and Throughput
+* **Near-Optimal Memory Usage:** Research indicates that traditional systems typically waste **60% to 80%** of GPU memory due to static over-reservation [^ref-vllm-2023]. vLLM reduces this waste to under **4%**, effectively doubling or tripling the number of concurrent requests a single GPU can handle.
+* **Massively Higher Throughput:** By utilizing **Continuous Batching** alongside PagedAttention, vLLM achieves up to **24x higher throughput** than baseline implementations. It eliminates "bubbles" in the pipeline by inserting new requests into a running batch as soon as any single sequence finishes, ensuring the GPU is never idle.
 
-### II. Massively Higher Throughput
-By utilizing **Continuous Batching** alongside PagedAttention, vLLM achieves up to **24x higher throughput** than baseline implementations. It eliminates "bubbles" in the pipeline by inserting new requests into a running batch as soon as any single sequence finishes.
+### Operational Capabilities: Sampling and Caching
+Beyond raw speed, PagedAttention enables complex sharing patterns that were previously too memory-intensive for production use. These visuals from the vLLM blog highlight the two primary mechanisms.
 
-## 3. Advanced Memory Sharing: Intra and Inter-Request
-PagedAttention enables complex decoding patterns that were previously too memory-intensive by allowing different "views" to point to the same physical data. These diagrams from the vLLM blog highlight the two primary sharing mechanisms.
-
-### I. Parallel Sampling (Intra-Request)
-Parallel sampling occurs when one request asks for multiple outputs (e.g., `n=5`). vLLM stores the prompt's KV cache exactly once. All generated sequences point back to these same physical blocks, branching only when they begin to generate unique tokens.
-
+* **Parallel Sampling (Intra-Request):** When one request asks for multiple outputs (e.g., `n=5`), vLLM stores the prompt's KV cache exactly once. All generated sequences point back to these same physical blocks, branching only when they begin to generate unique tokens.
 <p align="center">
   <img src="/images/inference-2026-vllm/parallel_sampling.gif" width="500">
   <br />
   <em>Figure 2: Parallel sampling in action. Multiple outputs share physical memory for the initial prompt.</em>
 </p>
 
-### II. Automatic Prefix Caching (Inter-Request)
-**Prefix Caching** allows Request B to reuse memory from Request A. In multi-turn conversations or agentic workflows, different requests often share a common system prompt. vLLM caches these blocks across requests, significantly reducing "Time to First Token" (TTFT) and total VRAM usage.
-
+* **Automatic Prefix Caching (Inter-Request):** **Prefix Caching** allows Request B to reuse memory from Request A. In multi-turn conversations or agentic workflows, different requests often share a common system prompt. vLLM caches these blocks across requests, significantly reducing "Time to First Token" (TTFT) and total VRAM usage.
 <p align="center">
   <img src="/images/inference-2026-vllm/memory_sharing.gif" width="700">
   <br />
   <em>Figure 3: Shared Prefix Caching across independent requests.</em>
 </p>
 
-## 4. Why Block Size Matters: Hardware and Model Nuances
+## 3. Why Block Size Matters: Hardware and Model Nuances
 The default block size in vLLM is **16 tokens**, a choice driven by a trade-off between memory waste and hardware efficiency.
 
 ### Hardware Constraints
@@ -64,21 +58,16 @@ It is vital to note that 16 tokens do not represent a fixed byte size. Since a b
 * **Llama 3 8B:** A 16-token block consumes **~1.0 MB** [^ref-llama3-memory].
 * **Llama 3 70B:** The same 16-token block consumes **~5.2 MB** [^ref-llama3-memory].
 
-Furthermore, modern architectures decouple the KV cache size from the hidden dimension ($d_{model}$), which impacts these calculations:
-* **Grouped-Query Attention (GQA):** Only a fraction of KV heads exist compared to Query heads (e.g., Llama 3 70B has an 8:1 ratio).
-* **Multi-Head Latent Attention (MLA):** Compressed KV vectors (like in DeepSeek-V3) mean 16 tokens consume significantly less memory.
+Furthermore, modern architectures like **DeepSeek-V3** use **Multi-Head Latent Attention (MLA)**, which compresses KV vectors. This means 16 tokens can consume significantly less memory than standard transformers, even at larger model scales.
 
 **Formula for one vLLM block (16 tokens):**
 $$\text{Bytes} = 16 \times \text{Layers} \times n_{KV\_heads} \times d_{head} \times \text{Precision\_Bytes} \times 2$$
 
-## 5. Synergy with Advanced Architectures
-Block-based management is particularly powerful for modern inference strategies:
+## 4. Synergy with Advanced Decoding Strategies
+Block-based management is particularly powerful for modern inference strategies that rely on "guessing" and "branching":
 
-### Speculative Decoding
-In speculative decoding, a "draft" model predicts tokens that may be rejected by the "target" model. Rejecting tokens becomes a simple metadata operation—unmapping physical blocks—rather than a costly memory re-alignment.
-
-### Multi-Token Prediction (MTP)
-Architectures that predict multiple future paths (like Medusa or DeepSeek-V3) create a "tree" of tokens. vLLM’s block-based logic handles this naturally, following the most likely branch while discarding others without fragmentation.
+* **Speculative Decoding:** In speculative decoding, a "draft" model predicts tokens that may be rejected by the "target" model. Rejecting tokens becomes a simple metadata operation—unmapping physical blocks—rather than a costly memory re-alignment.
+* **Multi-Token Prediction (MTP):** Architectures that predict multiple future paths create a "tree" of tokens. vLLM’s block-based logic handles this naturally, following the most likely branch while discarding others without fragmentation.
 
 ---
 
