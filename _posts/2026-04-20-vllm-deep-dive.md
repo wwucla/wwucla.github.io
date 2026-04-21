@@ -7,7 +7,7 @@ tags: [LLM, Inference, Optimization]
 description: A technical summary of PagedAttention, hardware nuances, and continuous batching in vLLM.
 ---
 
-*Estimated read time: 12 minutes*
+*Estimated read time: 13 minutes*
 
 In the world of Large Language Model (LLM) inference, the primary bottleneck isn't just compute—it's memory management. Specifically, the management of the **Key-Value (KV) Cache**. vLLM has emerged as the industry standard by borrowing a classic concept from Operating Systems: **Virtual Memory** [^ref-vllm-2023].
 
@@ -66,16 +66,23 @@ $$\text{Bytes} = 16 \times \text{Layers} \times n_{KV\_heads} \times d_{head} \t
 ## 4. Engineering the 'Magic': Production Implementation
 The true production strength of vLLM lies in how it manages the gap between the CPU scheduler and the GPU kernels.
 
-### I. CUDA Graph Replay
-Launching kernels for every token is expensive. vLLM uses **CUDA Graphs** to "record" and "replay" kernel launches. 
-* **Fixed Shapes:** CUDA Graphs require fixed tensor shapes. vLLM captures graphs for specific batch sizes (e.g., 1, 2, 4, 8, 16...). 
-* **The Padded Batch:** if a batch contains 7 requests, it is padded to 8 for the forward pass. While this creates a "straggler" effect where one long request keeps a batch slot occupied, Iteration-level scheduling ensures we fill other slots as soon as they open.
+### I. The CPU-GPU "Ping-Pong" Bottleneck
+A subtle but critical nuance is the physical location of the metadata. The **Block Table** (logical mapping) resides on the **CPU**, while the **KV Cache** resides on the **GPU**. 
+* **The Bottleneck:** For every token generated, the CPU must determine the next physical block address and communicate it to the GPU. This Host-to-Device (H2D) communication can become a bottleneck for small, fast models where the GPU finishes a forward pass quicker than the CPU can schedule the next one.
+* **The Optimization:** vLLM uses a highly optimized C++ scheduler to batch these mapping updates, but it places a high demand on the host's single-core CPU performance.
 
-### II. The "Swapping" Safety Valve
+### II. CUDA Graph Replay and Padded Slots
+Launching kernels for every token creates significant overhead. vLLM uses **CUDA Graphs** to "record" the sequence of kernel launches once, then "replay" them for every subsequent token without CPU-to-GPU roundtrips.
+
+* **Fixed Shapes:** CUDA Graphs require static tensor shapes. vLLM captures graphs for specific power-of-two batch sizes (e.g., 1, 2, 4, 8, 16, 32...).
+* **The Padded Batch:** If a batch contains 27 requests, it is padded to 32. The GPU computes all 32 slots, even if 5 are dummies.
+* **Continuous Batching Integration:** This is where iteration-level scheduling shines. Slots in a CUDA Graph are not locked until the longest request finishes. As soon as a request hits an EOS token, the scheduler evicts it and slides a new request from the waiting queue into that exact "padded" slot for the very next replay, ensuring near-constant occupancy.
+
+### III. The "Swapping" Safety Valve
 If VRAM is 100% full and a running request needs a new block, vLLM uses **Swapping**. It preempts the most recent request and moves its KV blocks from GPU VRAM to **CPU RAM**. This prevents Out-of-Memory (OOM) errors at the cost of a significant latency hit.
 
-### III. Synergy with Speculative Decoding
-In speculative decoding, a "draft" model predicts tokens that may be rejected by the "target" model. With PagedAttention, rejecting tokens is a simple metadata operation—unmapping physical blocks—rather than a costly memory re-alignment.
+### IV. Synergy with Speculative Decoding
+In speculative decoding, a "draft" model predicts tokens that may be rejected by the "target" model. With PagedAttention, rejecting tokens is a simple metadata operation—unmapping physical blocks from the Block Table—rather than a costly memory re-alignment.
 
 ---
 
