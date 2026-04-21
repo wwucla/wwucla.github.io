@@ -19,11 +19,14 @@ Traditional inference engines allocate KV cache in large, contiguous blocks. Bec
 - Using a **Block Table** to map **Logical Blocks** (the model's view) to these physical locations.
 - Allocating memory on-demand, achieving near-zero waste and allowing for significantly larger batch sizes.
 
-## 2. Why Block Size Matters
-The "Golden Ratio" for block size in the standard vLLM implementation is **16 tokens**.
+## 2. Why Block Size Matters: The 16-Token Standard
+The "Golden Ratio" for block size in the standard vLLM implementation is **16 tokens**. This choice is driven by a trade-off between memory waste and hardware efficiency.
 
-* **The Trade-off:** Smaller blocks minimize fragmentation but increase the overhead of the Block Table. Larger blocks (e.g., 64 or 128) are more hardware-friendly for coalesced memory reads but lead to higher waste.
-* **Framework Divergence:** vLLM defaults to 16 for flexibility across diverse hardware, while frameworks like TensorRT-LLM often use 64 or 128 to maximize throughput on data-center GPUs (H100/A100).
+* **GPU Warp Alignment:** The number 16 is mathematically optimized for NVIDIA's architecture. A **Warp** consists of 32 threads; in vLLM's PagedAttention kernels, these 32 threads can fetch 16 Key and 16 Value vectors in a single coalesced memory transaction.
+* **The TensorRT-LLM Divergence (128 Tokens):** Enterprise-tuned engines like TensorRT-LLM often default to **64 or 128**. While the Warp size remains 32, larger blocks are significantly more efficient for the GPU's memory controller. Reading one continuous 128-token block is faster than reading eight "fragmented" 16-token blocks because it maximizes memory coalescing and reduces the "indirection overhead" (the number of times the system has to look up addresses in the Block Table).
+* **The Throughput-Efficiency Trade-off:** * **vLLM (16):** Prioritizes **Memory Utilization**. Ideal for multi-tenant services where you want to pack as many users as possible without hitting Out-of-Memory (OOM).
+    * **TensorRT-LLM (128):** Prioritizes **Raw Throughput**. Ideal for dedicated enterprise clusters where maximizing tokens-per-second on an H100 is more important than saving a few hundred megabytes of VRAM.
+* **Memory Variance:** It is vital to remember that 16 tokens do not represent a fixed byte size. A block for Llama 3 70B (~5.2 MB) is much "heavier" than one for Llama 3 8B (~1 MB), making the "waste" from large blocks even more expensive for larger models.
 
 ## 3. Synergy with Advanced Architectures
 Block-based management is particularly powerful for modern inference strategies:
