@@ -1,4 +1,9 @@
-# Knowledge Distillation - Revisit
+---
+layout: post
+title: "Knowledge Distillation - Revisit"
+date: 2026-04-20
+categories: [ML]
+---
 
 **Estimated Reading Time: 12 minutes**
 
