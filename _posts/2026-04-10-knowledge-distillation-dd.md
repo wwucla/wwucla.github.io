@@ -2,7 +2,7 @@
 layout: post
 title: "Knowledge Distillation - Revisit"
 date: 2026-04-10
-categories: [Efficient ML, Inference Optimization]
+categories: [Efficient ML, Inference Optimization, ML Fundatmentals]
 tags: [Model Compression, Teacher-Student, Fine-tuning, Efficiency]
 description: Why we still use distillation to shrink large models rather than training small models from scratch, and the current 2026 best practices.
 ---
