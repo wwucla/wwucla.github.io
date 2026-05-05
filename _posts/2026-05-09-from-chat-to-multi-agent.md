@@ -3,8 +3,9 @@ title: "Agentic Architectures & Ecosystems: From Chat to Multi-Agent Systems"
 date: 2026-05-05
 category: AI Engineering
 tags: [Agentic AI]
-read_time: "8 min read"
 ---
+
+*Estimated read time: 8 minutes*
 
 ### Preface: The Transition to AI-Native Engineering
 As a Machine Learning Engineer (MLE) transitioning into an **AI-native engineer**, my daily work has shifted from tuning weights to architecting autonomous loops. We are building systems that don't just "chat," but write code, review designs, and manage domain-specific knowledge bases. 
