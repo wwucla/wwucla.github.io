@@ -1,4 +1,11 @@
-# LLM Inference Optimization: 2026 Update - MTP Deep Dive
+---
+layout: post
+title: "MTP & MTP-D Deep Dive: Beyond Next-Token Prediction"
+date: 2026-04-09
+categories: [AI, Research]
+tags: [Multi-Token Prediction, DeepSeek, Architecture, Speculative-Decoding]
+description: A technical breakdown of MTP and MTP-D architectures, focusing on how parallelizing token prediction improves both training stability and inference speed.
+---
 
 **Estimated Reading Time:** 8 minutes
 
