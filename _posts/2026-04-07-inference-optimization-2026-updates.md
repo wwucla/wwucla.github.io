@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "LLM Inference Optimization: 2026 Update"
-date: 2026-04-10
+date: 2026-04-07
 categories: [AI, Systems]
 tags: [Inference, GPU, Prefill-Decoding, System-Design]
 description: A high-level overview of the 2026 landscape for LLM serving, covering the evolving bottleneck transition from compute-bound to memory-bound.
