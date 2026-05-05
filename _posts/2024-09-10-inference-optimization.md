@@ -1,4 +1,11 @@
-# Large Transformer Model - Inference Optimization
+---
+layout: post
+title: "Large Transformer Model - Inference Optimization"
+date: 2024-09-01
+categories: [AI, Infrastructure]
+tags: [KV-Cache, Attention, TensorRT-LLM, Throughput]
+description: Fundamental strategies for optimizing transformer inference, focusing on KV cache management and the mechanics of FlashAttention.
+---
 
 <a class="top-link hide" href="#top">↑</a>
 <a name="top"></a>
