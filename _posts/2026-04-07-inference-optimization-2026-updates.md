@@ -1,4 +1,11 @@
-# LLM Inference Optimization: 2026 Update - Overview
+---
+layout: post
+title: "LLM Inference Optimization: 2026 Update"
+date: 2026-04-10
+categories: [AI, Systems]
+tags: [Inference, GPU, Prefill-Decoding, System-Design]
+description: A high-level overview of the 2026 landscape for LLM serving, covering the evolving bottleneck transition from compute-bound to memory-bound.
+---
 
 **TL;DR**: Since the initial overview in 2024, the "bottleneck war" has moved from simple KV cache management to architectural revolutions like Multi-Head Latent Attention (MLA) and hardware-native 4-bit floating point (FP4) on Blackwell GPUs.
 
