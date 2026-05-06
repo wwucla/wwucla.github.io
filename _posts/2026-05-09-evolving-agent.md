@@ -20,10 +20,10 @@ The industry has converged on four primary methods to move "experience" into "mo
 
 | Methodology | The Core Idea | Industry Adoption |
 | :--- | :--- | :--- |
-| **ACE (Context Engineering)** | Uses a loop to "write" its own system instructions (Playbooks). | **Google & Microsoft**: Standard for enterprise agents requiring domain-specific logic. |
-| **Skill Trees (AgentArk)** | Distills complex multi-agent debates into a single model's weights. | **ByteDance & Alibaba**: Critical for ultra-fast coding and trading assistants. |
-| **RAG-Memory** | Treats past successes as a vector database for long-term retrieval. | **OpenAI & Mem0**: Standard for personal assistants with high user-recall needs. |
-| **Distill-to-Weight** | Traditional Knowledge Distillation (KD) from a Teacher to a Student. | **Apple & Mistral**: Essential for on-device AI where power is strictly limited. |
+| **ACE (Context Engineering)** | Uses a loop to "write" its own system instructions (Playbooks). | **Google (ADK)** & **Microsoft**: Deployed for enterprise agents that manage high-stakes compliance and IT ops [^google_adk] [^ace]. |
+| **Skill Trees (AgentArk)** | Distills complex multi-agent debates into a single model's weights. | **ByteDance** & **Alibaba**: Critical for high-concurrency coding and trading assistants [^agentark]. |
+| **RAG-Memory** | Treats past successes as a vector database for long-term retrieval. | **OpenAI** & **Mem0**: Standard for cross-session personalization in consumer AI [^mem0]. |
+| **Distill-to-Weight** | Traditional Knowledge Distillation (KD) from a Teacher to a Student. | **Apple (AFM)** & **Mistral**: Essential for running 7B+ performance on mobile silicon [^apple] [^minillm]. |
 
 ### **The "Process Data" Hurdle in Skill Trees**
 Why do Skill Trees (AgentArk) require high-quality **process data** rather than just outcome data? Traditional distillation only cares if the answer is right. However, to instill a "reflex" of self-correction, an agent needs to see the **process**—the intermediate steps where a model identifies an error and pivots. High-quality process data is the "math scratchpad" of the AI world; without it, the agent learns the answer, but fails to learn the **skill** of reasoning [^agentark].
@@ -47,7 +47,7 @@ Imagine a Risk Agent fetching data from a legacy billing database:
     > `When querying Billing_v2, ALWAYS swap MM and DD. Failure to do so results in empty sets.`
 * **The Result:** On the next run, the agent reads its own distilled experience and succeeds instantly.
 
-```mermaid
+???mermaid
 sequenceDiagram
     participant G as Generator (Agent)
     participant R as Reflector (Coach)
@@ -60,17 +60,17 @@ sequenceDiagram
     R->>C: Suggests Instruction Update
     C->>P: Commits to System Prompt
     P-->>G: Optimized Logic for Next Run
-```
+???
 
 ---
 
 ## 3. Governance: The Three Tiers of Learning
 
-We manage this evolution through a tiered hierarchy to ensure accuracy.
+We manage this evolution through a tiered hierarchy to ensure accuracy and safety.
 
 * **Tier 1: Individual (Personal Intelligence):** Implicit learning from user signals (e.g., "Always use metric units") [^mem0].
-* **Tier 2: Enterprise (Governed Playbooks):** ACE suggests a playbook update; a human engineer must "Commit" the distilled lesson [^google_adk].
-* **Tier 3: Global (Aggregated Improvement):** Providers aggregate anonymized feedback to improve base system prompts during model updates.
+* **Tier 2: Enterprise (Governed Playbooks):** ACE suggests a playbook update; a human engineer must "Commit" the distilled lesson in platforms like **Vertex AI** [^google_adk].
+* **Tier 3: Global (Aggregated Improvement):** Providers aggregate anonymized feedback across millions of users to improve base system prompts during major model updates.
 
 ---
 
@@ -83,13 +83,15 @@ These foundational frameworks define the 2026 state-of-the-art for Experience-La
 * **AgentArk (Skill Trees):** Luo, Y., et al. (2026). *"Distilling Multi-Agent Intelligence into a Single LLM Agent"* (arXiv:2602.03955). [^agentark]
 * **RAG-Memory:** *"Mem0: Universal memory layer for AI Agents"* (mem0.ai). [^mem0]
 * **Distill-to-Weight:** *"MiniLLM: Knowledge Distillation of Large Language Models"* (arXiv:2306.08543). [^minillm]
+* **Apple Intelligence Foundation Models:** *"AFM-on-device Knowledge Distillation"* (arXiv:2407.21075). [^apple]
 
 [^eld]: Wu, W., et al. (2025). arXiv:2505.17716.
 [^ace]: Zhang, Q., et al. (2025). Published in arXiv.org 6 Oct 2025.
 [^agentark]: Luo, Y., et al. (2026). arXiv:2602.03955v1.
 [^mem0]: Tulsyan, A., et al. (2025). GitHub mem0ai/mem0.
 [^minillm]: Gu, Y., et al. (2024). Microsoft Research.
-[^google_adk]: Google Cloud Documentation (2026). Vertex AI Agent Builder Playbooks.
+[^apple]: Apple Inc. (2024). arXiv:2407.21075v1.
+[^google_adk]: Google Cloud (2025-2026). *"Architecting efficient context-aware multi-agent frameworks."* Google Developers Blog.
 
 ---
 
