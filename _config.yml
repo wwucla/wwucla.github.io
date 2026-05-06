@@ -22,8 +22,6 @@ theme: "minima"
 
 rss: rss
 
-theme: "minima"
-
 # Minima doesn't use the 'mermaid: enable' key, 
 # but we keep this so our logic in the post can see it
 mermaid: true 
