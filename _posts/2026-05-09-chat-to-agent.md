@@ -1,5 +1,5 @@
 ---
-title: "The Intelligence Loop: Vertical Evolution via Experience-Layer Distillation"
+title: "The Intelligence Loop: Agent Evolution via Experience-Layer Distillation"
 date: 2026-05-05
 category: AI Engineering
 tags: [Agentic AI]
