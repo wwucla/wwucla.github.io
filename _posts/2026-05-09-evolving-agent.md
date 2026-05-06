@@ -34,32 +34,34 @@ Why do Skill Trees (**AgentArk**) require high-quality **process data** rather t
 
 ACE is the most "human-readable" way an agent learns. It doesn't change model weights; it dynamically edits the agent's own manual (the Playbook). 
 
-### **The Architecture: Generator - Reflector - Curator**
-The ACE framework operates as a closed-loop system where three distinct roles collaborate to distill experience into instruction:
-
-1.  **The Generator:** The primary agent that interacts with tools and users.
-2.  **The Reflector:** An offline diagnostic agent that analyzes execution traces to find root causes of failure.
-3.  **The Curator:** The "editor-in-chief" that manages the structural integrity of the Playbook.
+### **The Architecture: Multi-Source & Comparative Reflection**
+In a production ACE environment, learning isn't a linear chain; it’s a comparative process. The **Reflector** doesn't just read logs—it compares the agent's internal reasoning against external signals from the **Environment** (API errors, unit tests) or the **User** (corrections).
 
 ```mermaid
 sequenceDiagram
+    participant E as Environment / User
     participant G as Generator (Agent)
     participant R as Reflector (Coach)
     participant C as Curator (Editor)
     participant P as Playbook (Prompt)
 
-    G->>G: Executes Task (Fails)
-    G->>R: Sends Execution Log
-    Note right of R: Analyzes Trace vs Tool Output
-    R->>C: Proposes Insight (The "What")
-    Note right of C: Checks for Conflicts/Duplicates
-    C->>P: Executes Delta-Update (The "How")
-    P-->>G: Optimized Logic for Next Run
+    Note over G, E: Phase 1: Execution & Feedback
+    G->>E: Action (Tool Call / API)
+    E-->>G: Natural Feedback (Success / Error / Human Correction)
+    
+    Note over G, R: Phase 2: Comparative Reflection
+    G->>R: Sends Trace (Step-by-step logs)
+    Note right of R: Compares Trace against Environment signals <br/>and "Happy Path" benchmarks
+    
+    Note over R, C: Phase 3: Curation
+    R->>C: Proposes Atomic Lesson (The "Delta")
+    C->>P: Executes Delta-Update (Add / Edit / Prune)
+    P-->>G: Optimized Strategy for Next Task
 ```
 
 ### **How the Reflector Finds Failures**
 The Reflector acts as a diagnostic engine analyzing three primary signals:
-* **Trace-Signal Mismatch:** Discrepancies between the agent's stated intent and the actual tool output.
+* **Trace-Signal Mismatch:** Discrepancies between the agent's stated intent ("I will call X") and the actual environment output ("Error: Y").
 * **Repetition Loops:** Identifying when an agent is "stuck" calling the same tool with identical arguments.
 * **Negative Feedback Latency:** Treating human "Corrections" as the gold-standard signal of failure.
 
@@ -67,13 +69,11 @@ The Reflector acts as a diagnostic engine analyzing three primary signals:
 While the Reflector finds the "What," the Curator determines the "How." Its job is to maintain a high "Signal-to-Noise" ratio in the prompt through four specific operations:
 * **Add:** Creating a new "bullet point" for an entirely new edge case.
 * **Refine/Edit:** Updating an existing rule that was too vague or slightly incorrect based on new evidence.
-* **Consolidate:** Merging three similar rules into one generalized principle to save tokens and reduce complexity.
-* **Prune:** Removing outdated rules or those that have been superseded by more robust model capabilities.
+* **Consolidate:** Merging similar rules into one generalized principle to save tokens and reduce complexity.
+* **Prune:** Removing outdated rules or those superseded by more robust model capabilities.
 
 ### **The Magic of Delta-Updates vs. Context Collapse**
-Traditional prompt engineering often uses "Monolithic Rewriting"—asking an LLM to rewrite the entire prompt to be "better." This leads to **Context Collapse**, where the model "forgets" specific edge cases to favor brevity.
-
-ACE uses **Delta-Updates**. The Curator applies narrow, incremental edits. This allows the context to grow organically while preserving critical safety and logic rules that would otherwise be lost in a total rewrite.
+Traditional prompt engineering often uses "Monolithic Rewriting"—asking an LLM to rewrite the entire prompt. This leads to **Context Collapse**, where the model "forgets" specific edge cases to favor brevity. ACE uses **Delta-Updates**—narrow, incremental edits—to preserve critical safety and logic rules that would otherwise be lost.
 
 ---
 
@@ -83,18 +83,14 @@ We do not want agents learning "bad habits" autonomously. The industry has conve
 
 | Scenario | Mode | Logic & Reference |
 | :--- | :--- | :--- |
-| **Personal Preferences** | **Autonomous** | Implicit learning from user signals (e.g., "Always use metric units"). [^mem0] |
-| **Tactical Corrections** | **Autonomous** | Fixes for known tool errors (e.g., date formats) are auto-committed if Reflector confidence is >95%. [^eledath] |
-| **Strategic Logic** | **HITL Required** | Updates changing business processes (e.g., "Apply 10% discount to angry users") require MLE review. [^google_adk] |
-| **Safety & Compliance** | **HITL Required** | Any update affecting PII handling, security, or regulatory logic triggers an immediate audit event. [^servicenow] |
-
-In production platforms like **Vertex AI**, "HITL Required" events manifest as a **Playbook Pull Request**. This allows engineers to compare the **Current vs. Proposed** instructions—ensuring the "Curator" hasn't introduced logic that conflicts with broader company policy.
+| **Personal Preferences** | **Autonomous** | Implicit learning from user signals (e.g., "Always use metric"). [^mem0] |
+| **Tactical Corrections** | **Autonomous** | Fixes for tool errors (e.g., date formats) if Reflector confidence >95%. [^eledath] |
+| **Strategic Logic** | **HITL Required** | Updates changing business processes (e.g., pricing strategy) require MLE review. [^google_adk] |
+| **Safety & Compliance** | **HITL Required** | Any update affecting PII handling or regulatory logic triggers an audit event. [^servicenow] |
 
 ---
 
 ## 4. References & Further Reading
-
-These foundational frameworks define the 2026 state-of-the-art for Experience-Layer Distillation:
 
 * **ELD Framework:** *"Get Experience from Practice: LLM Agents with Record & Replay"* (arXiv:2505.17716). [^eld]
 * **ACE (Agentic Context Engineering):** Zhang, Q., et al. (2025). *"Evolving Contexts for Self-Improving Language Models"* (arXiv:2510.04618). [^ace]
