@@ -1,6 +1,6 @@
 ---
 title: "Scaling Complexity: Architecting Multi-Agent Systems"
-date: 2026-05-05
+date: 2026-05-09
 category: AI Engineering
 tags: [Agentic AI]
 ---
