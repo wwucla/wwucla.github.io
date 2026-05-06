@@ -32,23 +32,14 @@ Why do Skill Trees (**AgentArk**) require high-quality **process data** rather t
 
 ## 2. Deep Dive: ACE (Agentic Context Engineering)
 
-ACE is the most "human-readable" way an agent learns. It doesn't change model weights; it dynamically edits the agent's own manual (the Playbook).
+ACE is the most "human-readable" way an agent learns. It doesn't change model weights; it dynamically edits the agent's own manual (the Playbook). 
 
-### **How the Reflector Finds Failures**
-The Reflector acts as a diagnostic engine analyzing three primary signals:
-* **Trace-Signal Mismatch:** Discrepancies between the agent's stated intent and the actual tool output.
-* **Repetition Loops:** Identifying when an agent is "stuck" calling the same tool with identical arguments.
-* **Negative Feedback Latency:** Treating human "Corrections" as the gold-standard signal of failure.
+### **The Architecture: Generator - Reflector - Curator**
+The ACE framework operates as a closed-loop system where three distinct roles collaborate to distill experience into instruction:
 
-### **Reflector vs. Curator: The Division of Labor**
-To prevent "hallucinated improvements," ACE enforces a strict separation:
-1.  **The Reflector (Diagnostic):** Analyzes the trace and **proposes** a specific insight (e.g., *"The database expects ISO-8601 strings"*). It cannot modify the playbook.
-2.  **The Curator (Architect):** Receives the proposal and decides **how** to integrate it. It handles deduplication, conflict resolution, and pruning.
-
-### **The Magic of Delta-Updates vs. Context Collapse**
-Traditional prompt engineering often uses "Monolithic Rewriting"—asking an LLM to rewrite the entire prompt to be "better." This leads to **Context Collapse**, where the model "forgets" specific edge cases to favor brevity.
-
-ACE uses **Delta-Updates**. The Curator applies narrow, incremental edits (Adding or Modifying specific "bullets" of knowledge). This allows the context to grow organically while preserving critical safety and logic rules that would otherwise be lost in a total rewrite.
+1.  **The Generator:** The primary agent that interacts with tools and users.
+2.  **The Reflector:** An offline diagnostic agent that analyzes execution traces to find root causes of failure.
+3.  **The Curator:** The "editor-in-chief" that manages the system prompt (Playbook) by applying precise updates.
 
 ```mermaid
 sequenceDiagram
@@ -65,6 +56,22 @@ sequenceDiagram
     C->>P: Executes Delta-Update (The "How")
     P-->>G: Optimized Logic for Next Run
 ```
+
+### **How the Reflector Finds Failures**
+The Reflector acts as a diagnostic engine analyzing three primary signals:
+* **Trace-Signal Mismatch:** Discrepancies between the agent's stated intent and the actual tool output.
+* **Repetition Loops:** Identifying when an agent is "stuck" calling the same tool with identical arguments.
+* **Negative Feedback Latency:** Treating human "Corrections" as the gold-standard signal of failure.
+
+### **Division of Labor: Reflector vs. Curator**
+To prevent "hallucinated improvements," ACE enforces a strict separation of concerns:
+* **The Reflector (Diagnostic):** It analyzes the trace and **proposes** a specific insight (e.g., *"The database expects ISO-8601 strings"*). It is purely an analytical role and cannot modify the playbook.
+* **The Curator (Architect):** It receives the proposal and decides **how** to integrate it. It is responsible for the structural integrity of the prompt, handling deduplication, conflict resolution, and pruning.
+
+### **The Magic of Delta-Updates vs. Context Collapse**
+Traditional prompt engineering often uses "Monolithic Rewriting"—asking an LLM to rewrite the entire prompt to be "better." This leads to **Context Collapse**, where the model "forgets" specific edge cases to favor brevity.
+
+ACE uses **Delta-Updates**. The Curator applies narrow, incremental edits (Adding or Modifying specific "bullets" of knowledge). This allows the context to grow organically while preserving critical safety and logic rules that would otherwise be lost in a total rewrite.
 
 ---
 
