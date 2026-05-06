@@ -22,6 +22,9 @@ theme: "minima"
 
 rss: rss
 
+mermaid:
+  enable: true  # Some Chirpy versions use this nested key
+
 kramdown:
   syntax_highlighter: rouge
   syntax_highlighter_opts:
