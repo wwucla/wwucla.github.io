@@ -94,29 +94,17 @@ We do not want agents learning "bad habits" autonomously. The industry has conve
 
 ---
 
-## 4. References & Further Reading
-
-* **ELD Framework:** *"Get Experience from Practice: LLM Agents with Record & Replay"* (arXiv:2505.17716). [^eld]
-* **ACE (Agentic Context Engineering):** Zhang, Q., et al. (2025). *"Evolving Contexts for Self-Improving Language Models"* (arXiv:2510.04618). [^ace]
-* **AgentArk (Skill Trees):** Luo, Y., et al. (2026). *"Distilling Multi-Agent Intelligence into a Single LLM Agent"* (arXiv:2602.03955). [^agentark]
-* **RAG-Memory:** *"Mem0: Universal memory layer for AI Agents"* (arXiv:2504.19413). [^mem0]
-* **Distill-to-Weight:** *"MiniLLM: Knowledge Distillation of Large Language Models"* (arXiv:2306.08543). [^minillm]
-* **Apple Intelligence Foundation Models:** *"AFM-on-device Knowledge Distillation"* (arXiv:2407.21075). [^apple]
-
-[^eld]: Feng, E., et al. (2025). *"Get Experience from Practice: LLM Agents with Record & Replay."* arXiv:2505.17716.
-[^ace]: Zhang, Q., et al. (2025). *"Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models."* arXiv:2510.04618.
-[^agentark]: Luo, Y., et al. (2026). *"AgentArk: Distilling Multi-Agent Intelligence into a Single LLM Agent."* arXiv:2602.03955.
-[^mem0]: Chhikara, P., et al. (2025). *"Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory."* ECAI 2025.
-[^minillm]: Gu, Y., et al. (2023). *"MiniLLM: Knowledge Distillation of Large Language Models."* arXiv:2306.08543.
-[^apple]: Gunter, T., et al. (2024). *"Apple Intelligence Foundation Language Models."* arXiv:2407.21075.
-[^google_adk]: Google Cloud Documentation (2025). *"Playbook best practices for AI Generators."*
-[^servicenow]: ServiceNow (2026). *"Agentic AI: Establishing Governance and Human Oversight."*
-[^auxilio]: Auxiliobits (2025). *"How to Choose Between Autonomous and Human-in-the-Loop Agents."*
-[^mindstudio]: MindStudio (2026). *"Agentic Coding Levels: From Autocomplete to the Dark Factory."*
-[^eledath]: Eledath, B. (2026). *"The 8 Levels of Agentic Engineering."*
-
----
-
 ## Summary
 The "Smart" agent of 2026 isn't just the one with the most parameters; it's the one with the most efficient **Experience-Layer Distillation** loop. By moving from **ACE** for strategy to **AgentArk** for speed, we are building systems that don't just follow instructions—they learn how to write them.
-```
+
+[^eld]: Feng, E., et al. (2025). [**"Get Experience from Practice: LLM Agents with Record & Replay."**](https://arxiv.org/abs/2505.17716) arXiv:2505.17716.
+[^ace]: Zhang, Q., et al. (2025). [**"Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models."**](https://arxiv.org/abs/2510.04618) arXiv:2510.04618.
+[^agentark]: Luo, Y., et al. (2026). [**"AgentArk: Distilling Multi-Agent Intelligence into a Single LLM Agent."**](https://arxiv.org/abs/2602.03955) arXiv:2602.03955.
+[^mem0]: Tulsyan, A., et al. (2025). [**"Mem0: Universal memory layer for AI Agents."**](https://github.com/mem0ai/mem0) GitHub mem0ai/mem0.
+[^minillm]: Gu, Y., et al. (2023). [**"MiniLLM: Knowledge Distillation of Large Language Models."**](https://arxiv.org/abs/2306.08543) arXiv:2306.08543.
+[^apple]: Gunter, T., et al. (2024). [**"Apple Intelligence Foundation Language Models."**](https://arxiv.org/abs/2407.21075) arXiv:2407.21075.
+[^google_adk]: Google Cloud (2025). [**"Playbook best practices for AI Generators."**](https://docs.cloud.google.com/dialogflow/cx/docs/concept/playbook/best-practices) Google Cloud Documentation.
+[^servicenow]: ServiceNow (2026). [**"Establishing Governance and Human Oversight in Agentic Workflows."**](https://www.servicenow.com/company/media/press-room/ai-agents-google-cloud.html) ServiceNow News.
+[^auxilio]: Webelight Solutions (2025). [**"How to Choose Between Autonomous and Human-in-the-Loop Agents."**](https://www.auxiliobits.com/blog/how-to-choose-between-autonomous-and-human-in-the-loop-agents/) Auxiliobits.
+[^mindstudio]: MindStudio (2026). [**"The Best Open-Source LLMs for Agentic Coding in 2026."**](https://www.mindstudio.ai/blog/best-open-source-llms-agentic-coding-2026) MindStudio Blog.
+[^eledath]: Eledath, B. (2026). [**"The 8 Levels of Agentic Engineering."**](https://www.bassimeledath.com/blog/levels-of-agentic-engineering) Bassim Eledath Blog.
