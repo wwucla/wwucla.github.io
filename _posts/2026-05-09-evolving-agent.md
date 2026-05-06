@@ -35,7 +35,11 @@ Why do Skill Trees (**AgentArk**) require high-quality **process data** rather t
 ACE is the most "human-readable" way an agent learns. It doesn't change model weights; it dynamically edits the agent's own manual (the Playbook). 
 
 ### **The Architecture: Multi-Source & Comparative Reflection**
-In a production ACE environment, learning isn't a linear chain; it’s a comparative process. The **Reflector** doesn't just read logs—it compares the agent's internal reasoning against external signals from the **Environment** (API errors, unit tests) or the **User** (corrections).
+The ACE framework operates as a closed-loop system where three distinct roles collaborate to distill experience into instruction. In production, this isn't a linear chain; it is a **contrastive analysis** where the system compares its internal intent against external reality.
+
+1.  **The Generator:** The primary agent that interacts with tools and users.
+2.  **The Reflector:** An offline diagnostic agent that compares execution traces against signals from the **Environment** (API errors, unit tests) or the **User** (corrections).
+3.  **The Curator:** The "editor-in-chief" that manages the structural integrity of the Playbook using precise delta-updates.
 
 ```mermaid
 sequenceDiagram
@@ -115,3 +119,4 @@ We do not want agents learning "bad habits" autonomously. The industry has conve
 
 ## Summary
 The "Smart" agent of 2026 isn't just the one with the most parameters; it's the one with the most efficient **Experience-Layer Distillation** loop. By moving from **ACE** for strategy to **AgentArk** for speed, we are building systems that don't just follow instructions—they learn how to write them.
+```
