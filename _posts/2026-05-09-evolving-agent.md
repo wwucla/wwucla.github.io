@@ -1,6 +1,6 @@
 ---
 title: "The Evolving Agent: Experience-Layer Distillation"
-date: 2026-05-07
+date: 2026-05-05
 category: AI Engineering
 tags: [Agentic AI]
 ---
