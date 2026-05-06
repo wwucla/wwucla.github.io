@@ -39,7 +39,7 @@ The ACE framework operates as a closed-loop system where three distinct roles co
 
 1.  **The Generator:** The primary agent that interacts with tools and users.
 2.  **The Reflector:** An offline diagnostic agent that analyzes execution traces to find root causes of failure.
-3.  **The Curator:** The "editor-in-chief" that manages the system prompt (Playbook) by applying precise updates.
+3.  **The Curator:** The "editor-in-chief" that manages the structural integrity of the Playbook.
 
 ```mermaid
 sequenceDiagram
@@ -63,25 +63,32 @@ The Reflector acts as a diagnostic engine analyzing three primary signals:
 * **Repetition Loops:** Identifying when an agent is "stuck" calling the same tool with identical arguments.
 * **Negative Feedback Latency:** Treating human "Corrections" as the gold-standard signal of failure.
 
-### **Division of Labor: Reflector vs. Curator**
-To prevent "hallucinated improvements," ACE enforces a strict separation of concerns:
-* **The Reflector (Diagnostic):** It analyzes the trace and **proposes** a specific insight (e.g., *"The database expects ISO-8601 strings"*). It is purely an analytical role and cannot modify the playbook.
-* **The Curator (Architect):** It receives the proposal and decides **how** to integrate it. It is responsible for the structural integrity of the prompt, handling deduplication, conflict resolution, and pruning.
+### **The Role of the Curator: Beyond Simple Updates**
+While the Reflector finds the "What," the Curator determines the "How." Its job is to maintain a high "Signal-to-Noise" ratio in the prompt through four specific operations:
+* **Add:** Creating a new "bullet point" for an entirely new edge case.
+* **Refine/Edit:** Updating an existing rule that was too vague or slightly incorrect based on new evidence.
+* **Consolidate:** Merging three similar rules into one generalized principle to save tokens and reduce complexity.
+* **Prune:** Removing outdated rules or those that have been superseded by more robust model capabilities.
 
 ### **The Magic of Delta-Updates vs. Context Collapse**
 Traditional prompt engineering often uses "Monolithic Rewriting"—asking an LLM to rewrite the entire prompt to be "better." This leads to **Context Collapse**, where the model "forgets" specific edge cases to favor brevity.
 
-ACE uses **Delta-Updates**. The Curator applies narrow, incremental edits (Adding or Modifying specific "bullets" of knowledge). This allows the context to grow organically while preserving critical safety and logic rules that would otherwise be lost in a total rewrite.
+ACE uses **Delta-Updates**. The Curator applies narrow, incremental edits. This allows the context to grow organically while preserving critical safety and logic rules that would otherwise be lost in a total rewrite.
 
 ---
 
-## 3. Governance: The Three Tiers of Learning
+## 3. Governance: When is a Human Required?
 
-We manage this evolution through a tiered hierarchy to ensure accuracy and safety.
+We do not want agents learning "bad habits" autonomously in a production environment. The decision to ask for human confirmation (Human-in-the-Loop) is governed by **Risk Tiers**:
 
-* **Tier 1: Individual (Personal Intelligence):** Implicit learning from user signals (e.g., "Always use metric units") [^mem0].
-* **Tier 2: Enterprise (Governed Playbooks):** ACE suggests a playbook update; a human engineer must "Commit" the distilled lesson in platforms like **Vertex AI** [^google_adk].
-* **Tier 3: Global (Aggregated Improvement):** Providers aggregate anonymized feedback across millions of users to improve base system prompts during major model updates.
+| Scenario | Mode | Logic |
+| :--- | :--- | :--- |
+| **Personal Preferences** | **Autonomous** | If you tell your agent "Always use metric," it updates your Tier-1 profile silently. |
+| **Tactical Corrections** | **Autonomous** | Fixes for known tool errors (e.g., date formats) are often auto-committed if the Reflector's confidence is >95%. |
+| **Strategic Logic** | **HITL Required** | If the update changes a business process (e.g., "Always refund if the customer is angry"), a Human-in-the-Loop (HITL) must review. |
+| **Safety/Security** | **HITL Required** | Any update affecting PII handling or security protocols triggers an immediate "Needs Review" event. |
+
+In platforms like **Vertex AI**, these "Needs Review" events appear as a Git-style Pull Request, where an MLE can see the **Before** vs. **After** prompt before hitting "Commit."
 
 ---
 
