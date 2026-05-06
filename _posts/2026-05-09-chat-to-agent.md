@@ -1,9 +1,11 @@
 ---
-title: "The Intelligence Loop: Agent Evolution via Experience-Layer Distillation"
-date: 2026-05-05
+title: "The Evolving Agent: Experience-Layer Distillation"
+date: 2026-05-07
 category: AI Engineering
 tags: [Agentic AI]
 ---
+
+*Estimated read time: 7 minutes*
 
 In an AI-native architecture, shipping is just the beginning. The real goal is to create systems that possess a "write-path"—the ability to learn from execution failures and refine their own behavior. We call this **Experience-Layer Distillation (ELD)**.
 
