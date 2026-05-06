@@ -23,8 +23,10 @@ theme: "minima"
 rss: rss
 
 kramdown:
+  syntax_highlighter: rouge
   syntax_highlighter_opts:
-    disable: true
+    # Remove the 'disable: true' line or set it to an empty object
+    block_code_header: true
     
 plugins:
   - jekyll-feed
