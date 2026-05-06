@@ -1,6 +1,6 @@
 ---
 title: "The Evolving Agent: Experience-Layer Distillation"
-date: 2026-05-05
+date: 2026-05-06
 category: AI Engineering
 tags: [Agentic AI]
 mermaid: true
@@ -8,7 +8,7 @@ mermaid: true
 
 *Estimated read time: 10 minutes*
 
-In an AI-native architecture, shipping is just the beginning. The real goal is to create systems that possess a "write-path"—the ability to learn from execution failures and refine their own behavior without manual code changes. We call this **Experience-Layer Distillation (ELD)**.
+In an AI-native architecture, shipping is just the beginning. The real goal is to create systems that possess a "write-path"—the ability to learn from execution failures and refine their own behavior without manual code changes. We call this **Experience-Layer Distillation (ELD)** [^eld].
 
 ELD is the architectural shift from *test-time compute* (thinking hard in the moment) to *offline intelligence* (internalizing lessons so they become system instincts).
 
@@ -20,13 +20,13 @@ The industry has converged on four primary methods to move "experience" into "mo
 
 | Methodology | The Core Idea | Industry Adoption |
 | :--- | :--- | :--- |
-| **ACE (Context Engineering)** | Uses a loop to "write" its own system instructions (Playbooks). | **Google (ADK)** & **Microsoft**: Deployed for enterprise agents that manage high-stakes compliance and IT ops [^google_adk] [^ace]. |
-| **Skill Trees (AgentArk)** | Distills complex multi-agent debates into a single model's weights. | **ByteDance** & **Alibaba**: Critical for high-concurrency coding and trading assistants [^agentark]. |
-| **RAG-Memory** | Treats past successes as a vector database for long-term retrieval. | **OpenAI** & **Mem0**: Standard for cross-session personalization in consumer AI [^mem0]. |
-| **Distill-to-Weight** | Traditional Knowledge Distillation (KD) from a Teacher to a Student. | **Apple (AFM)** & **Mistral**: Essential for running 7B+ performance on mobile silicon [^apple] [^minillm]. |
+| **ACE (Context Engineering)** [^ace] | Uses a loop to "write" its own system instructions (Playbooks). | **Google (ADK)** & **ServiceNow**: Deployed for autonomous enterprise operations and IT governance [^google_adk] [^servicenow]. |
+| **Skill Trees (AgentArk)** [^agentark] | Distills complex multi-agent debates into a single model's weights. | **ByteDance** & **Alibaba**: Scaling high-concurrency coding and logistics agents in production [^agentark]. |
+| **RAG-Memory** [^mem0] | Treats past successes as a vector database for long-term retrieval. | **OpenAI** & **Mem0**: Standard for cross-session personalization in consumer-facing agents. |
+| **Distill-to-Weight** [^minillm] | Traditional Knowledge Distillation (KD) from a Teacher to a Student. | **Apple (AFM)** & **Mistral**: Essential for running 7B+ performance on mobile silicon [^apple]. |
 
 ### **The "Process Data" Hurdle in Skill Trees**
-Why do Skill Trees (AgentArk) require high-quality **process data** rather than just outcome data? Traditional distillation only cares if the answer is right. However, to instill a "reflex" of self-correction, an agent needs to see the **process**—the intermediate steps where a model identifies an error and pivots. High-quality process data is the "math scratchpad" of the AI world; without it, the agent learns the answer, but fails to learn the **skill** of reasoning [^agentark].
+Why do Skill Trees (**AgentArk**) require high-quality **process data** rather than just outcome data? Traditional distillation only cares if the answer is right. However, to instill a "reflex" of self-correction, an agent needs to see the **process**—the intermediate steps where a model identifies an error and pivots. High-quality process data is the "math scratchpad" of the AI world; without it, the agent learns the answer, but fails to learn the **skill** of reasoning [^agentark].
 
 ---
 
@@ -47,7 +47,7 @@ Imagine a Risk Agent fetching data from a legacy billing database:
     > `When querying Billing_v2, ALWAYS swap MM and DD. Failure to do so results in empty sets.`
 * **The Result:** On the next run, the agent reads its own distilled experience and succeeds instantly.
 
-???mermaid
+```mermaid
 sequenceDiagram
     participant G as Generator (Agent)
     participant R as Reflector (Coach)
@@ -60,7 +60,7 @@ sequenceDiagram
     R->>C: Suggests Instruction Update
     C->>P: Commits to System Prompt
     P-->>G: Optimized Logic for Next Run
-???
+```
 
 ---
 
@@ -85,13 +85,14 @@ These foundational frameworks define the 2026 state-of-the-art for Experience-La
 * **Distill-to-Weight:** *"MiniLLM: Knowledge Distillation of Large Language Models"* (arXiv:2306.08543). [^minillm]
 * **Apple Intelligence Foundation Models:** *"AFM-on-device Knowledge Distillation"* (arXiv:2407.21075). [^apple]
 
-[^eld]: Wu, W., et al. (2025). arXiv:2505.17716.
+[^eld]: Feng, E., et al. (2025). *"Get Experience from Practice: LLM Agents with Record & Replay."* arXiv:2505.17716.
 [^ace]: Zhang, Q., et al. (2025). Published in arXiv.org 6 Oct 2025.
 [^agentark]: Luo, Y., et al. (2026). arXiv:2602.03955v1.
 [^mem0]: Tulsyan, A., et al. (2025). GitHub mem0ai/mem0.
 [^minillm]: Gu, Y., et al. (2024). Microsoft Research.
 [^apple]: Apple Inc. (2024). arXiv:2407.21075v1.
 [^google_adk]: Google Cloud (2025-2026). *"Architecting efficient context-aware multi-agent frameworks."* Google Developers Blog.
+[^servicenow]: ServiceNow (2026). *"ServiceNow Google Cloud AI Agents 2026: Autonomous Enterprise Operations."* Business 2.0 News.
 
 ---
 
