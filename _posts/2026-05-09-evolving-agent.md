@@ -32,20 +32,23 @@ Why do Skill Trees (**AgentArk**) require high-quality **process data** rather t
 
 ## 2. Deep Dive: ACE (Agentic Context Engineering)
 
-ACE is the most "human-readable" way an agent learns. It doesn't change model weights; it dynamically edits the agent's own manual. It operates via a three-role loop:
+ACE is the most "human-readable" way an agent learns. It doesn't change model weights; it dynamically edits the agent's own manual (the Playbook).
 
-1.  **The Generator:** The "Student" who executes the task.
-2.  **The Reflector:** The "Coach" who analyzes logs to find *why* a failure happened.
-3.  **The Curator:** The "Editor" who precisely updates the **Playbook** (System Prompt) using "delta-updates" to prevent context collapse [^ace].
+### **How the Reflector Finds Failures**
+The Reflector acts as a diagnostic engine analyzing three primary signals:
+* **Trace-Signal Mismatch:** Discrepancies between the agent's stated intent and the actual tool output.
+* **Repetition Loops:** Identifying when an agent is "stuck" calling the same tool with identical arguments.
+* **Negative Feedback Latency:** Treating human "Corrections" as the gold-standard signal of failure.
 
-### **Concrete Example: The SQL Billing Agent**
-Imagine a Risk Agent fetching data from a legacy billing database:
-* **The Failure:** The agent fails a query because it didn't realize the `Billing_v2` table uses `YYYY-DD-MM` formatting.
-* **The Reflection:** The Reflector identifies: *"Error code 402: Invalid date format. Database requires DD before MM."*
-* **The ACE Update:** The Curator adds a "Tactical Note" to the agent's prompt:
-    > `### [FIXED] Billing_v2 Date Logic`
-    > `When querying Billing_v2, ALWAYS swap MM and DD. Failure to do so results in empty sets.`
-* **The Result:** On the next run, the agent reads its own distilled experience and succeeds instantly.
+### **Reflector vs. Curator: The Division of Labor**
+To prevent "hallucinated improvements," ACE enforces a strict separation:
+1.  **The Reflector (Diagnostic):** Analyzes the trace and **proposes** a specific insight (e.g., *"The database expects ISO-8601 strings"*). It cannot modify the playbook.
+2.  **The Curator (Architect):** Receives the proposal and decides **how** to integrate it. It handles deduplication, conflict resolution, and pruning.
+
+### **The Magic of Delta-Updates vs. Context Collapse**
+Traditional prompt engineering often uses "Monolithic Rewriting"—asking an LLM to rewrite the entire prompt to be "better." This leads to **Context Collapse**, where the model "forgets" specific edge cases to favor brevity.
+
+ACE uses **Delta-Updates**. The Curator applies narrow, incremental edits (Adding or Modifying specific "bullets" of knowledge). This allows the context to grow organically while preserving critical safety and logic rules that would otherwise be lost in a total rewrite.
 
 ```mermaid
 sequenceDiagram
@@ -56,9 +59,10 @@ sequenceDiagram
 
     G->>G: Executes Task (Fails)
     G->>R: Sends Execution Log
-    R->>R: Identifies Root Cause
-    R->>C: Suggests Instruction Update
-    C->>P: Commits to System Prompt
+    Note right of R: Analyzes Trace vs Tool Output
+    R->>C: Proposes Insight (The "What")
+    Note right of C: Checks for Conflicts/Duplicates
+    C->>P: Executes Delta-Update (The "How")
     P-->>G: Optimized Logic for Next Run
 ```
 
@@ -81,18 +85,18 @@ These foundational frameworks define the 2026 state-of-the-art for Experience-La
 * **ELD Framework:** *"Get Experience from Practice: LLM Agents with Record & Replay"* (arXiv:2505.17716). [^eld]
 * **ACE (Agentic Context Engineering):** Zhang, Q., et al. (2025). *"Evolving Contexts for Self-Improving Language Models"* (arXiv:2510.04618). [^ace]
 * **AgentArk (Skill Trees):** Luo, Y., et al. (2026). *"Distilling Multi-Agent Intelligence into a Single LLM Agent"* (arXiv:2602.03955). [^agentark]
-* **RAG-Memory:** *"Mem0: Universal memory layer for AI Agents"* (mem0.ai). [^mem0]
+* **RAG-Memory:** *"Mem0: Universal memory layer for AI Agents"* (arXiv:2504.19413). [^mem0]
 * **Distill-to-Weight:** *"MiniLLM: Knowledge Distillation of Large Language Models"* (arXiv:2306.08543). [^minillm]
 * **Apple Intelligence Foundation Models:** *"AFM-on-device Knowledge Distillation"* (arXiv:2407.21075). [^apple]
 
 [^eld]: Feng, E., et al. (2025). *"Get Experience from Practice: LLM Agents with Record & Replay."* arXiv:2505.17716.
-[^ace]: Zhang, Q., et al. (2025). Published in arXiv.org 6 Oct 2025.
-[^agentark]: Luo, Y., et al. (2026). arXiv:2602.03955v1.
-[^mem0]: Tulsyan, A., et al. (2025). GitHub mem0ai/mem0.
-[^minillm]: Gu, Y., et al. (2024). Microsoft Research.
-[^apple]: Apple Inc. (2024). arXiv:2407.21075v1.
-[^google_adk]: Google Cloud (2025-2026). *"Architecting efficient context-aware multi-agent frameworks."* Google Developers Blog.
-[^servicenow]: ServiceNow (2026). *"ServiceNow Google Cloud AI Agents 2026: Autonomous Enterprise Operations."* Business 2.0 News.
+[^ace]: Zhang, Q., et al. (2025). *"Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models."* arXiv:2510.04618.
+[^agentark]: Luo, Y., et al. (2026). *"AgentArk: Distilling Multi-Agent Intelligence into a Single LLM Agent."* arXiv:2602.03955.
+[^mem0]: Chhikara, P., et al. (2025). *"Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory."* ECAI 2025.
+[^minillm]: Gu, Y., et al. (2023). *"MiniLLM: Knowledge Distillation of Large Language Models."* arXiv:2306.08543.
+[^apple]: Gunter, T., et al. (2024). *"Apple Intelligence Foundation Language Models."* arXiv:2407.21075.
+[^google_adk]: Google Cloud (2025). *"Vertex AI Agent Builder Playbooks: Architecting Context-Aware Frameworks."*
+[^servicenow]: ServiceNow (2026). *"Autonomous Enterprise Operations: Scaling Agentic Workflows."*
 
 ---
 
