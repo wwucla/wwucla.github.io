@@ -97,6 +97,8 @@ We do not want agents learning "bad habits" autonomously. The industry has conve
 ## Summary
 The "Smart" agent of 2026 isn't just the one with the most parameters; it's the one with the most efficient **Experience-Layer Distillation** loop. By moving from **ACE** for strategy to **AgentArk** for speed, we are building systems that don't just follow instructions—they learn how to write them.
 
+---
+
 [^eld]: Feng, E., et al. (2025). [**"Get Experience from Practice: LLM Agents with Record & Replay."**](https://arxiv.org/abs/2505.17716) arXiv:2505.17716.
 [^ace]: Zhang, Q., et al. (2025). [**"Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models."**](https://arxiv.org/abs/2510.04618) arXiv:2510.04618.
 [^agentark]: Luo, Y., et al. (2026). [**"AgentArk: Distilling Multi-Agent Intelligence into a Single LLM Agent."**](https://arxiv.org/abs/2602.03955) arXiv:2602.03955.
