@@ -22,13 +22,15 @@ theme: "minima"
 
 rss: rss
 
-mermaid:
-  enable: true  # Some Chirpy versions use this nested key
+theme: "minima"
+
+# Minima doesn't use the 'mermaid: enable' key, 
+# but we keep this so our logic in the post can see it
+mermaid: true 
 
 kramdown:
   syntax_highlighter: rouge
   syntax_highlighter_opts:
-    # Remove the 'disable: true' line or set it to an empty object
     block_code_header: true
     
 plugins:
