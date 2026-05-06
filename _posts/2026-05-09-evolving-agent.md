@@ -79,16 +79,16 @@ ACE uses **Delta-Updates**. The Curator applies narrow, incremental edits. This 
 
 ## 3. Governance: When is a Human Required?
 
-We do not want agents learning "bad habits" autonomously in a production environment. The decision to ask for human confirmation (Human-in-the-Loop) is governed by **Risk Tiers**:
+We do not want agents learning "bad habits" autonomously. The industry has converged on a **Risk-Based Autonomy** model [^auxilio] [^mindstudio], where the decision to ask for human confirmation (Human-in-the-Loop) is governed by specific tiers:
 
-| Scenario | Mode | Logic |
+| Scenario | Mode | Logic & Reference |
 | :--- | :--- | :--- |
-| **Personal Preferences** | **Autonomous** | If you tell your agent "Always use metric," it updates your Tier-1 profile silently. |
-| **Tactical Corrections** | **Autonomous** | Fixes for known tool errors (e.g., date formats) are often auto-committed if the Reflector's confidence is >95%. |
-| **Strategic Logic** | **HITL Required** | If the update changes a business process (e.g., "Always refund if the customer is angry"), a Human-in-the-Loop (HITL) must review. |
-| **Safety/Security** | **HITL Required** | Any update affecting PII handling or security protocols triggers an immediate "Needs Review" event. |
+| **Personal Preferences** | **Autonomous** | Implicit learning from user signals (e.g., "Always use metric units"). [^mem0] |
+| **Tactical Corrections** | **Autonomous** | Fixes for known tool errors (e.g., date formats) are auto-committed if Reflector confidence is >95%. [^eledath] |
+| **Strategic Logic** | **HITL Required** | Updates changing business processes (e.g., "Apply 10% discount to angry users") require MLE review. [^google_adk] |
+| **Safety & Compliance** | **HITL Required** | Any update affecting PII handling, security, or regulatory logic triggers an immediate audit event. [^servicenow] |
 
-In platforms like **Vertex AI**, these "Needs Review" events appear as a Git-style Pull Request, where an MLE can see the **Before** vs. **After** prompt before hitting "Commit."
+In production platforms like **Vertex AI**, "HITL Required" events manifest as a **Playbook Pull Request**. This allows engineers to compare the **Current vs. Proposed** instructions—ensuring the "Curator" hasn't introduced logic that conflicts with broader company policy.
 
 ---
 
@@ -109,8 +109,11 @@ These foundational frameworks define the 2026 state-of-the-art for Experience-La
 [^mem0]: Chhikara, P., et al. (2025). *"Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory."* ECAI 2025.
 [^minillm]: Gu, Y., et al. (2023). *"MiniLLM: Knowledge Distillation of Large Language Models."* arXiv:2306.08543.
 [^apple]: Gunter, T., et al. (2024). *"Apple Intelligence Foundation Language Models."* arXiv:2407.21075.
-[^google_adk]: Google Cloud (2025). *"Vertex AI Agent Builder Playbooks: Architecting Context-Aware Frameworks."*
-[^servicenow]: ServiceNow (2026). *"Autonomous Enterprise Operations: Scaling Agentic Workflows."*
+[^google_adk]: Google Cloud Documentation (2025). *"Playbook best practices for AI Generators."*
+[^servicenow]: ServiceNow (2026). *"Agentic AI: Establishing Governance and Human Oversight."*
+[^auxilio]: Auxiliobits (2025). *"How to Choose Between Autonomous and Human-in-the-Loop Agents."*
+[^mindstudio]: MindStudio (2026). *"Agentic Coding Levels: From Autocomplete to the Dark Factory."*
+[^eledath]: Eledath, B. (2026). *"The 8 Levels of Agentic Engineering."*
 
 ---
 
