@@ -1,0 +1,28 @@
+# Build the site with the same gem stack GitHub Pages uses, but DO NOT deploy.
+# Acts as a CI gate on pull requests — the merge button stays red if the build
+# would fail in production. Deployment is still handled by Pages on `main`
+# (see Settings → Pages).
+name: Jekyll build check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll (github-pages gem)
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
