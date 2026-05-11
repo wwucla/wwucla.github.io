@@ -3,6 +3,7 @@ title: "Scaling Complexity: Architecting Multi-Agent Systems"
 date: 2026-05-09
 category: AI Engineering
 tags: [Agentic AI]
+published: false
 ---
 
 Even the most highly evolved agent (optimized via experience distillation) eventually hits a "Cognitive Ceiling." To build complex, industrial-grade systems, we must shift from the vertical evolution of one agent to the horizontal organization of many. This is the realm of **Multi-Agent Systems (MAS)** [^1].
