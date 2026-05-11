@@ -1,8 +1,8 @@
-// Builds a table of contents from h2/h3 headings in .post-content.
-// Activation rules:
-//   data-toc-mode="force" : render whenever there's >=1 heading
-//   data-toc-mode="auto"  : render only when there are more than 3 headings
-// Assigns ids to headings that don't have one, so the TOC links scroll correctly.
+// Builds a nested table of contents from h2/h3 headings in .post-content.
+// Activation rules (set via data-toc-mode on #post-toc):
+//   "force" : render whenever there's >=1 heading
+//   "auto"  : render only when there are more than 3 headings
+// Assigns ids to headings that don't have one, so the TOC anchors scroll correctly.
 (function () {
   function slugify(text) {
     return text
@@ -30,6 +30,16 @@
     return candidate;
   }
 
+  function makeItem(heading, id) {
+    const li = document.createElement('li');
+    li.className = 'toc-' + heading.tagName.toLowerCase();
+    const a = document.createElement('a');
+    a.href = '#' + id;
+    a.textContent = heading.textContent;
+    li.appendChild(a);
+    return li;
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     const tocEl = document.getElementById('post-toc');
     if (!tocEl) return;
@@ -41,20 +51,35 @@
     const mode = tocEl.getAttribute('data-toc-mode') || 'auto';
     const threshold = 3;
 
-    if (mode === 'auto' && headings.length <= threshold) return;
     if (headings.length === 0) return;
+    if (mode === 'auto' && headings.length <= threshold) return;
 
     const list = tocEl.querySelector('.post-toc-list');
     const used = new Set();
+    let currentH2Li = null;
+
     headings.forEach(function (h) {
       const id = ensureUniqueId(h, used);
-      const li = document.createElement('li');
-      li.className = 'toc-' + h.tagName.toLowerCase();
-      const a = document.createElement('a');
-      a.href = '#' + id;
-      a.textContent = h.textContent;
-      li.appendChild(a);
-      list.appendChild(li);
+      const li = makeItem(h, id);
+
+      if (h.tagName === 'H2') {
+        list.appendChild(li);
+        currentH2Li = li;
+      } else {
+        // H3: nest under the most recent H2. If none yet (post starts with h3),
+        // fall back to the top level so we still show something useful.
+        if (currentH2Li) {
+          let sub = currentH2Li.querySelector(':scope > ul.post-toc-sublist');
+          if (!sub) {
+            sub = document.createElement('ul');
+            sub.className = 'post-toc-sublist';
+            currentH2Li.appendChild(sub);
+          }
+          sub.appendChild(li);
+        } else {
+          list.appendChild(li);
+        }
+      }
     });
 
     tocEl.hidden = false;

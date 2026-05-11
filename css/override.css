@@ -213,12 +213,23 @@ hr {
   margin-bottom: 0.5em;
   color: #333;
 }
-.post-toc-list {
+.post-toc-list,
+.post-toc-sublist {
   list-style: none;
   padding-left: 0;
   margin: 0;
 }
-.post-toc-list li.toc-h2 { margin: 0.2em 0; }
-.post-toc-list li.toc-h3 { margin: 0.15em 0 0.15em 1.25em; font-size: 0.95em; }
-.post-toc-list a { text-decoration: none; color: #2a7ae2; }
-.post-toc-list a:hover { text-decoration: underline; }
+.post-toc-list > li.toc-h2 { margin: 0.25em 0; }
+.post-toc-sublist {
+  margin: 0.15em 0 0.4em 1.25em;
+  padding-left: 0.5em;
+  border-left: 1px solid #d6dbe0;
+}
+.post-toc-sublist > li.toc-h3 { margin: 0.15em 0; font-size: 0.95em; }
+.post-toc a { text-decoration: none; color: #2a7ae2; }
+.post-toc a:hover { text-decoration: underline; }
+.post-toc > .post-toc-list > li.toc-h3 {
+  /* Fallback: h3 without a parent h2 — show at top level. */
+  margin-left: 1.25em;
+  font-size: 0.95em;
+}
