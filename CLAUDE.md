@@ -9,12 +9,22 @@ Working notes for Claude (or any AI assistant) on this repo. Keep this scannable
 - Generated originally from `chadbaldwin/simple-blog-bootstrap`.
 - Live site: https://wwucla.github.io/
 
-## PR workflow (preferred)
+## Sync before any change
 
-Always work on a feature branch and merge via `gh` — no clicking through the web UI. The pattern that works reliably:
+The user also edits files directly via the GitHub web UI sometimes, so local `main` is often stale. **Always** start fresh work by pulling latest from origin:
 
 ```bash
 git checkout main && git pull
+```
+
+Skip this and you'll branch off old code and produce avoidable merge conflicts. Do this every session, every new branch — no exceptions.
+
+## PR workflow (preferred)
+
+Always work on a feature branch and merge via `gh` — no clicking through the web UI for merges. The pattern that works reliably:
+
+```bash
+git checkout main && git pull                # see above — never skip
 git checkout -b <type>/<short-name>          # feature/, fix/, demo/, chore/
 # ... edits ...
 git add <files>
