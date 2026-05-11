@@ -35,9 +35,10 @@ plugins:
   - jekyll-feed
   - jekyll-sitemap
 
-titles_from_headings:
-  strip_title: true
-  collections: true
+# jekyll-titles-from-headings is auto-loaded by github-pages.
+# We leave it at its defaults (collections: false) so it does NOT
+# touch posts — front-matter `title:` stays authoritative even when
+# a post starts with a heading.
 
 defaults:
   - scope:
