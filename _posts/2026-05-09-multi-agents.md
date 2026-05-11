@@ -5,8 +5,6 @@ category: AI Engineering
 tags: [Agentic AI]
 ---
 
-*Estimated read time: 6 minutes*
-
 ### Preface: Scaling Beyond the Lone Agent
 Even the most highly evolved agent (optimized via experience distillation) eventually hits a "Cognitive Ceiling." To build complex, industrial-grade systems, we must shift from the vertical evolution of one agent to the horizontal organization of many. This is the realm of **Multi-Agent Systems (MAS)** [^1].
 

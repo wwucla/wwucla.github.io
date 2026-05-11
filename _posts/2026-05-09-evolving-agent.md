@@ -6,8 +6,6 @@ tags: [Agentic AI]
 mermaid: true
 ---
 
-*Estimated read time: 10 minutes*
-
 In an AI-native architecture, shipping is just the beginning. The real goal is to create systems that possess a "write-path"—the ability to learn from execution failures and refine their own behavior without manual code changes. We call this **Experience-Layer Distillation (ELD)** [^eld].
 
 ELD is the architectural shift from *test-time compute* (thinking hard in the moment) to *offline intelligence* (internalizing lessons so they become system instincts).
