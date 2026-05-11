@@ -7,8 +7,6 @@ tags: [LLM, Inference Optimization]
 description: A technical breakdown of MTP and MTP-D architectures, focusing on how parallelizing token prediction improves both training stability and inference speed.
 ---
 
-**Estimated Reading Time:** 8 minutes
-
 ## TLDR
 In 2023, speculative decoding was about "The Big Model and its Small Friend." By 2026, the paradigm has shifted toward **Architectural Integration**. Multi-Token Prediction (MTP) and its distilled counterpart (MTP-D) have replaced external draft models by embedding "future-thinking" heads directly into the main model's trunk. This article explores the mechanics of validation, the "mini-prefill" paradox, and why alignment—not just accuracy—is the key to 2x+ throughput.
 

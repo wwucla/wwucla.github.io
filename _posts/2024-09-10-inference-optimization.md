@@ -12,40 +12,9 @@ description: Fundamental strategies for optimizing transformer inference, focusi
 
 **TL;DR**: This note provides a comprehensive overview of LLM inference, including challenges it presents and potential solutions through algorithmic optimization and system implementation improvements.
 
-Estimated reading time: 15 mins
-
-<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
-
-- [Overview](#overview)
-  * [Two-phase Process](#two-phase-process)
-  * [Challenges](#challenges)
-- [Algorithmic Optimization](#algorithmic-optimization)
-  * [Quantization](#quantization)
-    + [Weights-only vs Activation Quantization](#weights-only-vs-activation-quantization)
-    + [Post-Training Quantization vs Quantization-Aware Training](#post-training-quantization-vs-quantization-aware-training)
-    + [SmoothQuant](#smoothquant)
-    + [Activation-aware Weight Quantization (AWQ)](#activation-aware-weight-quantization-awq)
-  * [Knowledge Distillation](#knowledge-distillation)
-  * [Pruning & Sparsity](#pruning--sparsity)
-  * [Transformer Model Architecture Optimization](#transformer-model-architecture-optimization)
-    + [Multi-Query and Grouped-Query Attention](#multi-query-and-grouped-query-attention)
-    + [Mixture of Experts](#mixture-of-experts)
-- [Implementation / System Optimization](#implementation--system-optimization)
-  * [vLLM (PagedAttention)](#vllm-pagedattention)
-  * [Longformer](#longformer)
-  * [StreamingLLM](#streamingllm)
-  * [FlashAttention](#flashattention)
-  * [Speculative Decoding](#speculative-decoding)
-- [References](#references)
-
-<!-- TOC end -->
-
-
-<!-- TOC --><a name="overview"></a>
 ## Overview
 Most contemporary LLMs are based on the transformer architecture. These models process input text sequentially, token by token. The model generates subsequent tokens until a designated termination token, such as `<|endoftext|>`, is produced, signaling the completion of the output sequence.
 
-<!-- TOC --><a name="two-phase-process"></a>
 ### Two-phase Process
 LLM inference is generally divided into two phases:
 * **Prefill Phase** (aka initialization phase): This phase involves processing the entire input sequence and constructing key-value (KV) caches for each decoder layer. Given the availability of all input tokens, this phase is amenable to efficient parallelization, particularly for long input contexts.
@@ -67,7 +36,6 @@ Due to the distinct computational patterns of the prefill and decode phases, the
   Figure 2: Typical Architecture of LLM Inference Servers and Engines
 </p>
 
-<!-- TOC --><a name="challenges"></a>
 ### Challenges
 There are multiple challenges around LLM inference:
 * **Heave computation** in both prefill and decode phase
@@ -77,7 +45,6 @@ There are multiple challenges around LLM inference:
 
 The following sections below will discuss different optimizations for LLM inference.
 
-<!-- TOC --><a name="algorithmic-optimization"></a>
 ## Algorithmic Optimization
 This section explores optimizations that modify the LLM algorithm to enhance inference efficiency. We'll begin with general approaches applicable to many ML architectures and how they are applied to transformer models, including:
 
@@ -87,12 +54,10 @@ This section explores optimizations that modify the LLM algorithm to enhance inf
 
 Then, we'll delve into optimizations tailored to transformer models, discussing several variants designed for more efficient inference.
 
-<!-- TOC --><a name="quantization"></a>
 ### Quantization
 
 This section explores various quantization techniques, including weight-only or weight+activation quantization. We'll discuss post-training quantization methods and quantization-aware training. Additionally, we'll delve into a few SOTA quantization advancements, such as SmoothQuant and activation-aware weight quantization (AWQ).
 
-<!-- TOC --><a name="weights-only-vs-activation-quantization"></a>
 #### Weights-only vs Activation Quantization
 * **Weights-only Quantization (WOQ)** 
   * WOQ focuses on quantizing the model weights. It reduces the model size, leading to faster loading time and lower memory usage during inference. 
@@ -105,13 +70,11 @@ In summary, **WOQ** is generally preferred for LLMs due to its better balance of
 
 **Choice of quantization precisions**: Typically used precision formats are INT8 or INT4 for weights, while activations remain in FP16 for better accuracy. Recently Nvidia hardware added support for FP8 ([Micikevicius et al 2022](https://arxiv.org/abs/2209.05433))[^ref-fp8], providing another alternative for quantization.
 
-<!-- TOC --><a name="post-training-quantization-vs-quantization-aware-training"></a>
 #### Post-Training Quantization vs Quantization-Aware Training
 * **Post-Training Quantization (PTQ)** is a straightforward and cost-effective method that directly converts the weights of a pre-trained model to lower precision without requiring any additional training. It reduces the model's size and improves inference speed.
 * **Quantization-Aware Training (QAT)** introduced by [Jacob et al., 2017](https://arxiv.org/abs/1712.05877)[^ref-qat], allows for training models with lower-precision weights and activations during the forward pass. This reduces memory usage and improves inference speed. However, the backward pass, which calculates gradients for weight updates, still uses full precision to maintain accuracy. While QAT typically leads to higher-quality quantized models compared to post-training quantization (PTQ), it requires a more complex setup. Fortunately, mainstream ML platforms like TensorFlow offer support for both QAT and PTQ (e.g. [QAT support in Tensorflow](https://www.tensorflow.org/model_optimization/guide/quantization/training)).
  
 
-<!-- TOC --><a name="smoothquant"></a>
 #### SmoothQuant
 **SmoothQuant[^ref-smoothquant]** ([Xiao et al., 2023](https://arxiv.org/abs/2211.10438)) discovered that outliers in activations become more prevalent as the model size grows. These outliers can significantly degrade quantization performance (illustrated in the figure below), leading to higher quantization errors and potentially impacting the quality of the quantized model.  In contrast, the weights have fewer outliers and are generally easier to quantize.
 
@@ -127,7 +90,6 @@ The key idea of SmoothQuant is to migrate part of the quantization challenges fr
   Figure 4: SmoothQuant Intuition [from SmoothQuant paper]
 </p>
 
-<!-- TOC --><a name="activation-aware-weight-quantization-awq"></a>
 #### Activation-aware Weight Quantization (AWQ)
 **AWQ** ([Lin et al., 2024](https://arxiv.org/abs/2306.00978))[^ref-awq] is a weight quantization technique designed to significantly reduce the size of LLMs for deployment on memory-constrained edge devices. Unlike SmoothQuant, which uses W8A8 quantization, AWQ primarily focuses on weight quantization (W4A16) to achieve substantial size reductions.
 
@@ -145,7 +107,6 @@ AWQ addresses these challenges by:
 
 By combining these techniques, AWQ effectively achieves W4A16 quantization while minimizing performance degradation, making it a promising method for compressing LLMs for deployment on resource-limited devices.
 
-<!-- TOC --><a name="knowledge-distillation"></a>
 ### Knowledge Distillation
 The high-level idea of knowledge distillation ([Hinton et al., 2015](https://arxiv.org/abs/1503.02531)) is to transfer knowledge from a cumbersome teacher model to a smaller student model, illustrated in the figure below.
 
@@ -172,14 +133,11 @@ $$L_{KD} = L(Softmax(z_t, T), Softmax(z_s, T)) + \lambda * L(Softmax(z_s, 1), y)
 
 
 
-<!-- TOC --><a name="pruning--sparsity"></a>
 ### Pruning & Sparsity
 TODO - add more details
 
-<!-- TOC --><a name="transformer-model-architecture-optimization"></a>
 ### Transformer Model Architecture Optimization
 
-<!-- TOC --><a name="multi-query-and-grouped-query-attention"></a>
 #### Multi-Query and Grouped-Query Attention
 As mentioned previously, the size of the KV cache is proportional to `d_model`, i.e. `n_kv_heads * d_head` for multi-head attention. One optimization of reducing KV cache size is multi-query attention ([Shazeer et al., 2019](https://arxiv.org/abs/1911.02150))[^ref-mqa], i.e. sharing the same key and value among all heads, but still use different queries. This eliminates the `n_kv_heads` multiplier (becomes 1x) and the KV cache size is proportional to `d_head`. Different from MQA, Grouped-Query Attention[^ref-gqa] (GQA) ([Ainslie et al., 2023](https://arxiv.org/abs/2305.13245)) shares the same key and value for a group of queries (instead of all).
 
@@ -197,7 +155,6 @@ In the study of Llama2 model[^ref-llama2] ([Touvron et al., 2023](https://arxiv.
   Figure 9: Accuracy comparison between MHA, MQA and GQA
 </p>
 
-<!-- TOC --><a name="mixture-of-experts"></a>
 #### Mixture of Experts
 
 The key idea of Mixture of Experts (MoE) is to **enforce sparsity** in model architecture, by allowing the model to scale up the parameter size (i.e. multiple experts) without increasing computational cost. The idea of MoE is not new and can be traced back to [Jacobs et al., 1991](https://ieeexplore.ieee.org/abstract/document/6797059)[^ref-moe].
@@ -230,9 +187,7 @@ The MoE architecture introduces challenges to model training, fine-tuning, and i
 
 There are more developments in MoE, which are too much to be included in this note. I will cover them in a dedicated note in the future.
 
-<!-- TOC --><a name="implementation--system-optimization"></a>
 ## Implementation / System Optimization
-<!-- TOC --><a name="vllm-pagedattention"></a>
 ### vLLM (PagedAttention)
 
 [Kwon et al., 2023](https://arxiv.org/abs/2309.06180) [^ref-vllm] highlighted the significant memory inefficiency of traditional KV cache management in large language models (LLMs) serving multiple requests simultaneously. The dynamic nature of KV cache sizes, varying based on context and generated token length, often leads to wasted memory due to over-allocation or fragmentation, illustrated as below.
@@ -257,7 +212,6 @@ To address this issue, vLLM introduces a novel KV cache management technique ins
 
 In conclusion, vLLM's paged attention mechanism provides a more efficient and scalable solution for managing KV caches in LLMs, enabling improved performance and resource utilization.
 
-<!-- TOC --><a name="longformer"></a>
 ### Longformer
 
 Longformer ([Beltagy et al., 2020](https://arxiv.org/abs/2004.05150)) [^ref-longformer] was designed to handle long documents more efficiently than traditional transformers. The main limitation of standard transformers is their quadratic scaling with sequence length, making them computationally expensive for long inputs.
@@ -273,7 +227,6 @@ It has shown state-of-the-art results on various long-document tasks, demonstrat
 
 
 
-<!-- TOC --><a name="streamingllm"></a>
 ### StreamingLLM
 ([Xiao et al., 2023](https://arxiv.org/abs/2309.17453)) [^ref-streamingllm] brought up additional challenges of decoding with long sequences: 1) excessive memory usage due to KV cache (in addition to long decoding latency), 2) limited length extrapolation abilities of existing models, i.e., their performance degrades when the sequence length goes beyond the attention window size set during pre-training. While **Longformer** ensures constant memory usage and decoding speed, after the cache is initially filled, the model collapses once the sequence length exceeds the cache size, i.e., even just evicting the KV of the first token, as illustrated in the figure below.
 
@@ -293,7 +246,6 @@ With these observations, **StreamingLLM** proposed using **a rolling KV cache wh
 
 In streaming settings, StreamingLLM outperforms the sliding window recomputation baseline by up to 22.2× speedup. Interestingly, it also adopted the **PagedAttention** proposed in the previous section, which allows easy pin-coding of the physical KV block of attention sink tokens in memory.
 
-<!-- TOC --><a name="flashattention"></a>
 ### FlashAttention
 
 It was discovered that the majority of time consumed during the context phase is I/O. **FlashAttention** ([Dao et al., 2022](https://arxiv.org/abs/2205.14135)) [^ref-flashattention] uses the idea of tiling and only loads part of the caches when computing attention scores to ensure more computations are conducted in high-speed SRAM instead of materializing larger NxN attention score matrix on relatively slow GPU HBM and achieve a 4x speedup without impacting model accuracy.
@@ -305,14 +257,12 @@ It was discovered that the majority of time consumed during the context phase is
 
 FlashAttention is an **exact optimization**, meaning the computation remains the same as conventional attentions while achieving speedup by optimizing data access patterns (through tiling) and reducing the I/O overhead. You can also find their later work of FlashAttention2 ([Dao et al., 2023](https://arxiv.org/abs/2307.08691)) [^ref-flashattention2] and FlashAttention3 ([Shah et al., 2024](https://arxiv.org/abs/2407.08608)) [^ref-flashattention3], but I will skip the details here.
 
-<!-- TOC --><a name="speculative-decoding"></a>
 ### Speculative Decoding
 
 [Leviathan et al., 2022](https://arxiv.org/abs/2211.17192) [^ref-spec-decoding]
 
 Similar to the idea of speculative execution in a pipeline, here it uses a smaller LLM model to predict the next few tokens and applies the larger model to validate the quality of the predictions. Because larger models process a group of tokens instead of one by one, there is more potential to optimize for runtime. On T5-XXL, it achieves a 2X-3X acceleration compared to the standard T5X implementation, with identical outputs.
 
-<!-- TOC --><a name="references"></a>
 ## References
 [^ref-gshard]: Lepikhin, Dmitry, et al. "[Gshard: Scaling giant models with conditional computation and automatic sharding](https://arxiv.org/abs/2006.16668)." arXiv preprint arXiv:2006.16668 (2020).
 [^ref-switch-transformer]: Fedus, William, Barret Zoph, and Noam Shazeer. "[Switch transformers: Scaling to trillion parameter models with simple and efficient sparsity](https://arxiv.org/abs/2101.03961)." Journal of Machine Learning Research 23.120 (2022): 1-39.

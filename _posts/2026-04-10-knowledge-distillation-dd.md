@@ -7,8 +7,6 @@ tags: [Inference Optimization, ML Fundamentals]
 description: Why we still use distillation to shrink large models rather than training small models from scratch, and the current 2026 best practices.
 ---
 
-**Estimated Reading Time: 12 minutes**
-
 ## Preface
 I first encountered Hinton’s Knowledge Distillation paper back in 2015 during the final two weeks of my internship at **IBM Watson Research**. At the time, the concept of a student model learning from "dark knowledge" via hard and soft targets was intellectually fascinating. I remember asking my supervisor if we should try to implement it for our project. His response was a masterclass in pragmatism: he felt that "opening the box" of the Caffe framework [^ref-kd-jia-2014] to manually adjust the temperature logic and then tuning the results would be too much of an architectural lift for a project with only fourteen days left on the clock.
 
