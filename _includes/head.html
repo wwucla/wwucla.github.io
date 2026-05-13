@@ -30,7 +30,15 @@
   <script type="text/javascript" src="/js/highlightjs/languages/powershell.min.js"></script>
   <script type="text/javascript" src="/js/highlightjs/languages/tsql.min.js"></script>
 
-  <script type="text/javascript"> hljs.highlightAll(); </script>
+  <script type="text/javascript">
+    // Highlight all code blocks except mermaid — hljs escapes diagram syntax
+    // which breaks mermaid.run() when it fires on the load event.
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('pre code:not(.language-mermaid)').forEach(function(block) {
+        hljs.highlightElement(block);
+      });
+    });
+  </script>
 
   {% if page.mermaid %}
   <script type="module">
