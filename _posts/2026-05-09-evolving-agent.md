@@ -18,13 +18,13 @@ ELD is the architectural shift from *test-time compute* (thinking hard in the mo
 
 The industry has converged on five primary methods to move "experience" into "model capability," each serving a specific engineering constraint.
 
-| Methodology | The Core Idea | Industry Adoption |
+| Methodology | The Core Idea | Adoption & Results |
 | :--- | :--- | :--- |
-| **ACE (Context Engineering)** [^ace] | Uses a closed loop to "write" its own system instructions (Playbooks). No weight updates required. | **Google (ADK)** & **ServiceNow**: Deployed for autonomous enterprise operations and IT governance [^google_adk] [^servicenow]. |
-| **CER (Contextual Experience Replay)** [^cer] | Synthesizes past trajectories into a dynamic in-context memory buffer; retrieved at inference time. Training-free. | SOTA on WebArena (36.7%) and VisualWebArena (31.9%); 51% relative improvement over GPT-4o baseline [^cer]. |
-| **ERL (Experiential Reflective Learning)** [^erl] | Builds a reusable pool of heuristics by reflecting on failure trajectories; injects relevant ones at test time. | +7.8% on Gaia2 benchmark over ReAct baseline; especially effective on search-style tasks [^erl]. |
-| **Skill Trees (AgentArk)** [^agentark] | Distills complex multi-agent reasoning into a single model's weights via process data. | **ByteDance** & **Alibaba**: Scaling high-concurrency coding and logistics agents in production [^agentark]. |
-| **Memory Layer (Episodic + Semantic)** [^mem0] | Persists structured knowledge across sessions — raw trajectories (episodic) plus distilled facts (semantic). | **OpenAI** & **Mem0**: Standard architecture for cross-session personalization in consumer-facing agents. |
+| **ACE (Context Engineering)** [^ace] | Uses a closed loop to "write" its own system instructions (Playbooks). No weight updates required. | **Google (ADK)** & **ServiceNow** in production [^google_adk] [^servicenow]. +10.6% on AppWorld; −87% adaptation latency [^ace]. |
+| **CER (Contextual Experience Replay)** [^cer] | Synthesizes past trajectories into a dynamic in-context memory buffer; retrieved at inference time. Training-free. | Research-stage (ACL 2025). SOTA on WebArena (36.7%) and VisualWebArena (31.9%); no documented production deployments yet [^cer]. |
+| **ERL (Experiential Reflective Learning)** [^erl] | Builds a reusable pool of heuristics by reflecting on failure trajectories; injects relevant ones at test time. | Research-stage (2026 preprint). +7.8% on Gaia2 over ReAct; no documented production deployments yet [^erl]. |
+| **Skill Trees (AgentArk)** [^agentark] | Distills complex multi-agent reasoning into a single model's weights via process data. | **ByteDance** & **Alibaba** in production [^agentark]. High-concurrency coding and logistics agents. |
+| **Memory Layer (Episodic + Semantic)** [^mem0] | Persists structured knowledge across sessions — raw trajectories (episodic) plus distilled facts (semantic). | **OpenAI** & **Mem0** in production. Standard architecture for cross-session personalization. |
 
 > **Note:** Traditional Knowledge Distillation (Teacher → Student KD) is sometimes listed here, but it is a training-time technique rather than a runtime experience loop — see the [Knowledge Distillation deep-dive](/2026/04/10/knowledge-distillation-dd.html) for a full treatment.
 
@@ -42,7 +42,7 @@ Systems like Mem0 manage this split, but the engineering overhead is non-trivial
 
 ## 2. Deep Dive: ACE (Agentic Context Engineering)
 
-Of the three methods above, **ACE earns a dedicated deep dive.** It is the only approach that requires no weight updates, no curated training data, and no retraining — making it deployable as a pure system change in a production environment. It also directly solves the failure mode that quietly kills long-lived agents: **context collapse**, where iterative prompt rewrites erode critical edge-case rules over time.
+Of the five methods above, **ACE earns a dedicated deep dive.** It is the only approach that requires no weight updates, no curated training data, and no retraining — making it deployable as a pure system change in a production environment. It also directly solves the failure mode that quietly kills long-lived agents: **context collapse**, where iterative prompt rewrites erode critical edge-case rules over time.
 
 On the AppWorld benchmark, ACE outperforms prior methods (Dynamic Cheatsheet, GEPA) by +10.6% and matches the top-ranked production agent using a smaller open-source model — while cutting adaptation latency by up to 87% [^ace].
 
