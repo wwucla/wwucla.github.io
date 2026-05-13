@@ -3,7 +3,7 @@ layout: post
 title: "MTP & MTP-D Deep Dive: Beyond Next-Token Prediction"
 date: 2026-04-09
 categories: [LLM, Inference Optimization]
-tags: [LLM, Inference Optimization]
+tags: [LLM Inference Optimization]
 description: A technical breakdown of MTP and MTP-D architectures, focusing on how parallelizing token prediction improves both training stability and inference speed.
 ---
 

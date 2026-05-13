@@ -3,7 +3,7 @@ layout: post
 title: "vLLM - Revisit"
 date: 2026-04-20
 categories: [AI, Infrastructure]
-tags: [LLM, Inference Optimization]
+tags: [LLM Inference Optimization]
 description: A technical summary of PagedAttention, hardware nuances, and continuous batching in vLLM.
 ---
 
