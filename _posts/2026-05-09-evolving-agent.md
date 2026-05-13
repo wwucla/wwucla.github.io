@@ -53,7 +53,7 @@ sequenceDiagram
     
     Note over G, R: Phase 2: Comparative Reflection
     G->>R: Sends Trace (Step-by-step logs)
-    Note right of R: Compares Trace against Environment signals <br/>and "Happy Path" benchmarks
+    Note right of R: Compares Trace vs Environment signals and Happy Path benchmarks
     
     Note over R, C: Phase 3: Curation
     R->>C: Proposes Atomic Lesson (The "Delta")
