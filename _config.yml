@@ -46,3 +46,13 @@ defaults:
       type: post
     values:
       tags: Other
+
+# Don't process internal-only files as Jekyll pages. Without this,
+# top-level markdown like CLAUDE.md becomes /claude.html and minima
+# auto-adds it to the header navigation.
+exclude:
+  - CLAUDE.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor/
+  - .jekyll-cache
