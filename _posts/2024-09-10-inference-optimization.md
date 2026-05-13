@@ -4,6 +4,7 @@ title: "Large Transformer Model - Inference Optimization"
 date: 2024-09-10
 categories: [LLM, Inference Optimization]
 tags: [LLM Inference Optimization]
+math: true
 description: Fundamental strategies for optimizing transformer inference, focusing on KV cache management and the mechanics of FlashAttention.
 ---
 

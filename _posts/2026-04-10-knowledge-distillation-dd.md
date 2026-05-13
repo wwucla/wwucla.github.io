@@ -4,6 +4,7 @@ title: "Knowledge Distillation - Revisit"
 date: 2026-04-10
 categories: [Efficient ML, Inference Optimization, ML Fundamentals]
 tags: [LLM Inference Optimization, ML Fundamentals]
+math: true
 description: Why we still use distillation to shrink large models rather than training small models from scratch, and the current 2026 best practices.
 ---
 
