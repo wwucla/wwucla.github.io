@@ -1,5 +1,5 @@
 ---
-title: "Scaling Complexity: Architecting Multi-Agent Systems"
+title: "Multi-Agent Systems in Practice"
 date: 2026-05-09
 category: AI Engineering
 tags: [Agentic AI]
@@ -39,11 +39,17 @@ Modern frameworks (LangGraph, CrewAI, AutoGen) provide the infrastructure for th
 
 ## 3. Common Topologies
 
-* **Sequential (Chain):** Agent A → Agent B → Agent C (e.g., Code → Test → Deploy). Simple but brittle — errors compound downstream.
-* **Hierarchical (Star):** A **Supervisor Agent** dispatches tasks to a fleet of specialist workers and summarizes progress for the user. AutoGen is the canonical example.
-* **Mesh / Swarm (P2P):** Decentralized handoffs where agents dynamically pass "authority" to one another based on current goal state. Flexible, but hardest to debug.
-* **Ring:** Agents relay context in sequence for critique or debate loops — each agent refines the previous agent's output before passing it on. Useful for adversarial review workflows.
-* **Adaptive (Dynamic):** Emerging research [^3] proposes frameworks that *self-select* topology based on task complexity — simpler tasks route as chains, complex ones expand into mesh. This is an active 2026 research direction.
+**Hierarchical (Star)** is by far the most common topology in production — it maps naturally to how teams already work and is the easiest to observe and debug.
+
+* **Sequential (Chain):** Agent A → Agent B → Agent C. *Example: a content pipeline where a Researcher agent finds sources, a Writer agent drafts the post, and an Editor agent polishes it.* Simple to reason about, but brittle — an error in step 1 propagates through every downstream step.
+
+* **Hierarchical (Star) ★ Most Common:** A Supervisor Agent breaks down a goal and dispatches subtasks to specialist workers, then synthesizes their outputs. *Example: a coding assistant where a Planner agent splits a feature request into subtasks, dispatching them to a Backend agent, a Frontend agent, and a Test agent in parallel — then a Reviewer agent validates the combined output.* AutoGen is the canonical framework for this pattern.
+
+* **Mesh / Swarm (P2P):** Agents dynamically pass "authority" to whichever peer is best suited for the current state of the goal — no central coordinator. *Example: an open-ended research swarm where a Biology agent, a Statistics agent, and a Literature agent each pull in sources and hand off to whoever can best handle the next question.* Powerful for exploratory tasks, but the hardest to debug and observe.
+
+* **Ring:** Each agent refines the previous agent's output in a fixed sequence, like a relay race. *Example: an adversarial review loop where a Proposer drafts a solution, a Critic challenges it, a Defender responds, and a Judge scores the result — cycling until consensus.* Niche, but effective for tasks requiring structured debate or multi-perspective validation.
+
+* **Adaptive (Dynamic):** The system self-selects topology based on task complexity — simple tasks route as a chain, complex ones expand into a mesh. Emerging research [^3] proposes frameworks for this. Still largely a 2026 research direction rather than a production staple.
 
 ---
 
