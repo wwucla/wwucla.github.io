@@ -1,20 +1,20 @@
 ---
-title: "The Evolving Agent: Experience-Layer Distillation"
+title: "The Evolving Agent: Experience-Layer Learning"
 date: 2026-05-06
 category: AI Engineering
 tags: [Agentic AI]
 mermaid: true
 ---
 
-In an AI-native architecture, shipping is just the beginning. The real goal is to create systems that possess a "write-path"—the ability to learn from execution failures and refine their own behavior without manual code changes. We call this **Experience-Layer Distillation (ELD)** [^eld].
+In an AI-native architecture, shipping is just the beginning. The real goal is to create systems that possess a "write-path"—the ability to learn from execution failures and refine their own behavior without manual code changes. We call this **Experience-Layer Learning (ELL)** [^eld].
 
-Without a write-path, every agent error is a manual ticket: an engineer debugs the trace, rewrites the prompt, and redeploys. With ELD, the agent writes that ticket itself.
+Without a write-path, every agent error is a manual ticket: an engineer debugs the trace, rewrites the prompt, and redeploys. With ELL, the agent writes that ticket itself.
 
-ELD is the architectural shift from *test-time compute* (thinking hard in the moment) to *offline intelligence* (internalizing lessons so they become system instincts).
+ELL is the architectural shift from *test-time compute* (thinking hard in the moment) to *offline intelligence* (internalizing lessons so they become system instincts).
 
 ---
 
-## 1. The ELD Methodology Matrix
+## 1. The ELL Methodology Matrix
 
 The industry has converged on five primary methods to move "experience" into "model capability," each serving a specific engineering constraint.
 
@@ -27,6 +27,17 @@ The industry has converged on five primary methods to move "experience" into "mo
 | **Memory Layer (Episodic + Semantic)** [^mem0] | Persists structured knowledge across sessions — raw trajectories (episodic) plus distilled facts (semantic). | **OpenAI** & **Mem0** in production. Standard architecture for cross-session personalization. |
 
 > **Note:** Traditional Knowledge Distillation (Teacher → Student KD) is sometimes listed here, but it is a training-time technique rather than a runtime experience loop — see the [Knowledge Distillation deep-dive](/2026/04/10/knowledge-distillation-dd.html) for a full treatment.
+
+### Untangling the Runtime Methods: ACE vs. CER vs. ERL vs. Memory Layer
+
+ACE, CER, ERL, and the Memory Layer all operate at runtime without touching model weights — so what actually separates them? The distinction is *where* each method writes its knowledge and *how durable* that write is.
+
+* **Memory Layer** is the most passive. It records what happened (episodic) and what is known to be true (semantic), and surfaces that information on request. It doesn't change how the agent reasons — it expands what the agent can look up. Think of it as a long-term diary the agent can search.
+* **CER** is a step more opinionated. Rather than storing raw history, it synthesizes past trajectories into patterns and injects the most relevant ones into the context window at inference time. It tells the agent: *"here's how similar situations played out"* — but it's still a retrieval operation, not a behavioral change.
+* **ERL** goes further still: it reflects specifically on *failures* and extracts heuristics — *"don't do X in situation Y."* These heuristics are reusable across tasks, but like CER, they're injected at inference time and don't affect the agent's baseline behavior between runs.
+* **ACE** is the only method that permanently changes the agent's instructions. The Curator rewrites the Playbook — the agent's system prompt — so every future run starts from an improved baseline. It's not augmenting the context window; it's raising the floor.
+
+The progression is: **passive retrieval → experience injection → instruction rewriting**. Each step makes the improvement more durable: the Memory Layer helps the agent remember; CER and ERL help the agent adapt; ACE helps the agent *become better*.
 
 ### Skill Trees: The Process Data Hurdle
 Why do Skill Trees (**AgentArk**) require high-quality **process data** rather than just outcome data? Traditional distillation only cares if the answer is right. But to instill a "reflex" of self-correction, an agent needs to see the **process**—the intermediate steps where a model identifies an error and pivots. Process data is the "math scratchpad" of the AI world; without it, the agent learns the answer but fails to internalize the **skill** of reasoning [^agentark].
@@ -49,7 +60,7 @@ On the AppWorld benchmark, ACE outperforms prior methods (Dynamic Cheatsheet, GE
 ACE is the most "human-readable" way an agent learns: it doesn't change model weights; it dynamically edits the agent's own manual (the **Playbook**).
 
 ### The Architecture: Multi-Source & Comparative Reflection
-The ACE framework operates as a closed-loop system where three distinct roles collaborate to distill experience into instruction. In production, this isn't a linear chain; it is a **contrastive analysis** where the system compares its internal intent against external reality.
+The ACE framework operates as a closed-loop system where three distinct roles collaborate to translate experience into instruction. In production, this isn't a linear chain; it is a **contrastive analysis** where the system compares its internal intent against external reality.
 
 1. **The Generator:** The primary agent that interacts with tools and users.
 2. **The Reflector:** An offline diagnostic agent that compares execution traces against signals from the **Environment** (API errors, unit tests) or the **User** (corrections).
@@ -86,8 +97,8 @@ The Reflector acts as a diagnostic engine analyzing three primary signals:
 ### The Magic of Delta-Updates vs. Context Collapse
 Traditional prompt engineering often uses "Monolithic Rewriting" — asking an LLM to rewrite the entire prompt. This leads to **Context Collapse**, where the model "forgets" specific edge cases to favor brevity. ACE uses **Delta-Updates** — narrow, incremental edits — to preserve critical safety and logic rules that would otherwise be lost. The Curator executes four targeted operations: adding rules for new edge cases, refining rules that were too vague, consolidating overlapping rules into generalized principles, and pruning rules made obsolete by model improvements.
 
-### Notable Alternatives
-ACE is not without challengers. **CER (Contextual Experience Replay)** achieves SOTA on web navigation benchmarks by synthesizing past trajectories into a dynamic in-context memory buffer, without any training [^cer]. **ERL (Experiential Reflective Learning)** takes a complementary approach: rather than evolving a playbook, it builds a reusable pool of heuristics derived from failure analysis [^erl]. The key differentiator for ACE is its explicit defense against context collapse — neither CER nor ERL address playbook structural integrity the way the Curator does, which is what makes ACE the stronger choice for long-lived production agents.
+### Head-to-Head: ACE vs. CER and ERL
+CER and ERL are strong challengers, but they operate in a different regime. CER achieves SOTA on web navigation by synthesizing past trajectories in-context [^cer]; ERL builds failure-derived heuristics that prune bad strategies at test time [^erl]. Both are effective for their target domains. The key differentiator for ACE is durability: neither CER nor ERL modify the agent's baseline — their improvements exist only within a single inference context. ACE's Curator permanently updates the Playbook, so every future run inherits the lesson. For long-lived production agents that need to get reliably better over weeks and months, that persistence is the deciding factor.
 
 ---
 
@@ -105,7 +116,7 @@ We do not want agents learning "bad habits" autonomously. The industry has conve
 ---
 
 ## Summary
-The "Smart" agent of 2026 isn't just the one with the most parameters; it's the one with the most efficient **Experience-Layer Distillation** loop. In a production pipeline, these methodologies are increasingly sequential: engineers use **ACE** to iteratively discover and refine strategic instructions in a human-readable "Playbook," and then leverage **AgentArk** to "bake" that multi-agent intelligence into high-performance, single-model weights for deployment at scale.
+The "Smart" agent of 2026 isn't just the one with the most parameters; it's the one with the most efficient **Experience-Layer Learning** loop. In a production pipeline, these methodologies are increasingly sequential: engineers use **ACE** to iteratively discover and refine strategic instructions in a human-readable "Playbook," and then leverage **AgentArk** to "bake" that multi-agent intelligence into high-performance, single-model weights for deployment at scale.
 
 ---
 
