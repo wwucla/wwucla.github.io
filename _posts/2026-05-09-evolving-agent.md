@@ -16,11 +16,13 @@ ELD is the architectural shift from *test-time compute* (thinking hard in the mo
 
 ## 1. The ELD Methodology Matrix
 
-The industry has converged on three primary methods to move "experience" into "model capability," each serving a specific engineering constraint.
+The industry has converged on five primary methods to move "experience" into "model capability," each serving a specific engineering constraint.
 
 | Methodology | The Core Idea | Industry Adoption |
 | :--- | :--- | :--- |
 | **ACE (Context Engineering)** [^ace] | Uses a closed loop to "write" its own system instructions (Playbooks). No weight updates required. | **Google (ADK)** & **ServiceNow**: Deployed for autonomous enterprise operations and IT governance [^google_adk] [^servicenow]. |
+| **CER (Contextual Experience Replay)** [^cer] | Synthesizes past trajectories into a dynamic in-context memory buffer; retrieved at inference time. Training-free. | SOTA on WebArena (36.7%) and VisualWebArena (31.9%); 51% relative improvement over GPT-4o baseline [^cer]. |
+| **ERL (Experiential Reflective Learning)** [^erl] | Builds a reusable pool of heuristics by reflecting on failure trajectories; injects relevant ones at test time. | +7.8% on Gaia2 benchmark over ReAct baseline; especially effective on search-style tasks [^erl]. |
 | **Skill Trees (AgentArk)** [^agentark] | Distills complex multi-agent reasoning into a single model's weights via process data. | **ByteDance** & **Alibaba**: Scaling high-concurrency coding and logistics agents in production [^agentark]. |
 | **Memory Layer (Episodic + Semantic)** [^mem0] | Persists structured knowledge across sessions — raw trajectories (episodic) plus distilled facts (semantic). | **OpenAI** & **Mem0**: Standard architecture for cross-session personalization in consumer-facing agents. |
 
