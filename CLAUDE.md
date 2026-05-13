@@ -34,15 +34,14 @@ gh pr create --fill --base main
 gh pr merge --squash --delete-branch --auto
 ```
 
-The `--auto` flag is the important one: it tells GitHub to merge the PR as soon as required checks pass, so we don't need to foreground-watch with `gh pr checks --watch` (which has a race where it exits before the workflow has even registered).
+Two flags do important work here:
+
+- `--auto` tells GitHub to merge the PR as soon as required checks pass, so we don't need to foreground-watch with `gh pr checks --watch` (which has a race where it exits before the workflow has even registered).
+- `--delete-branch` deletes BOTH the local and remote branch as part of the merge, AND fast-forwards local `main` to the merge commit. **Do not** chain `git branch -d <branch>` or `git pull` after it — those commands will either be no-ops or fail because `--delete-branch` already did the work.
 
 "Allow auto-merge" is enabled in repo Settings → General. Leave it on.
 
-After the auto-merge fires, sync local main:
-
-```bash
-git checkout main && git pull && git branch -d <branch-name>
-```
+If `--auto` queues the merge for later (checks still pending when `gh` exits), local `main` won't be updated immediately. That's fine — the "Sync before any change" rule above takes care of it next time you start work.
 
 ## Local dev (Jekyll)
 
@@ -90,9 +89,12 @@ Do **not** write hardcoded "Estimated reading time" lines or hand-rolled "Table 
 
 Posts can opt out of the auto-TOC by setting `toc: false`. The `Other` tag is the default for posts that omit `tags:` (configured in `_config.yml`).
 
+To hide a draft post that's still in progress, add `published: false` to its front-matter. Jekyll then skips it on build — the file stays in the repo, but it disappears from listings, the live site, and the feed.
+
 ## Gotchas / things to never do
 
-- **Do not enable `titles_from_headings.collections: true`** in `_config.yml`. The `jekyll-titles-from-headings` plugin (auto-loaded by `github-pages`) will then override the front-matter `title` with the first heading text whenever a post starts with a heading. Front-matter title must stay authoritative.
+- **Do not enable `titles_from_headings.collections: true`** in `_config.yml`. The `jekyll-titles-from-headings` plugin (auto-loaded by `github-pages` — note that several plugins are auto-loaded beyond what's in the `plugins:` list; see https://pages.github.com/versions/) will then override the front-matter `title` with the first heading text whenever a post starts with a heading. Front-matter title must stay authoritative.
+- **Top-level markdown files (`CLAUDE.md`, `README.md`, etc.) get rendered as Jekyll pages by default** and minima auto-adds them to the header navigation. Keep internal-only files out of the build by listing them in the `exclude:` block of `_config.yml`.
 - **Do not use bitdowntoc** or other manual-TOC generators in posts. The auto-TOC from `/js/toc.js` handles it.
 - **Do not pin `gem "jekyll"` directly** in a `Gemfile`. Always go through `gem "github-pages", group: :jekyll_plugins` so versions match production Pages.
 - **Do not push directly to `main`.** Always go through a PR (the auto-merge flow makes this near-zero overhead).
